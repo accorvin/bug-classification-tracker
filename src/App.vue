@@ -11,8 +11,12 @@
             <div v-if="lastUpdated" class="text-sm text-primary-100">
               Last Updated: {{ formatDate(lastUpdated) }}
             </div>
-            <!-- Split refresh button -->
-            <div class="relative flex">
+            <!-- Data refreshed externally indicator (when refresh is disabled) -->
+            <div v-if="!refreshEnabled" class="text-sm text-primary-100 bg-primary-600 px-3 py-1 rounded-md">
+              Data refreshed externally
+            </div>
+            <!-- Split refresh button (when refresh is enabled) -->
+            <div v-if="refreshEnabled" class="relative flex">
               <button
                 @click="refreshData(false)"
                 :disabled="isRefreshing"
@@ -190,7 +194,7 @@ import BugListView from './components/BugListView.vue';
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import Toast from './components/Toast.vue';
 import { useAuth } from './composables/useAuth';
-import { refreshBugs, getBugs, getSummary } from './services/api';
+import { refreshBugs, getBugs, getSummary, getConfig } from './services/api';
 
 export default {
   name: 'App',
@@ -222,7 +226,8 @@ export default {
       projectKey: 'RHOAIENG',
       refreshProgressPercent: 0,
       refreshProgressMessage: 'Starting refresh...',
-      showRefreshMenu: false
+      showRefreshMenu: false,
+      refreshEnabled: true
     };
   },
   watch: {
@@ -240,8 +245,11 @@ export default {
       }
     }
   },
-  mounted() {
+  async mounted() {
     document.addEventListener('click', this.handleClickOutside);
+
+    // Load config to check if refresh is enabled
+    await this.loadConfig();
 
     if (this.authUser) {
       this.loadData();
@@ -251,6 +259,17 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    async loadConfig() {
+      try {
+        const config = await getConfig(this.projectKey);
+        this.refreshEnabled = config.refreshEnabled;
+      } catch (error) {
+        console.error('Failed to load config:', error);
+        // Default to enabled if config fetch fails
+        this.refreshEnabled = true;
+      }
+    },
+
     async loadData() {
       this.isLoading = true;
       try {

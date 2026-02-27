@@ -41,6 +41,29 @@ async function getAuthToken() {
 }
 
 /**
+ * Get configuration from the backend
+ * @param {string} projectKey - Project key
+ * @returns {Promise<Object>} - { refreshEnabled: boolean, lastUpdated: string }
+ */
+export async function getConfig(projectKey = 'RHOAIENG') {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/config?project=${projectKey}`, {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Get config error:', error);
+    throw error;
+  }
+}
+
+/**
  * Refresh bugs from Jira and classify them via SSE stream.
  * @param {string} projectKey - Jira project key (e.g., 'RHOAIENG')
  * @param {Object} options

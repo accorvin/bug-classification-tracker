@@ -31,6 +31,7 @@ app.use(function(req, res, next) {
 const PORT = process.env.API_PORT || 3001;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
 const JIRA_HOST = process.env.JIRA_HOST || 'https://issues.redhat.com';
+const S3_BUCKET = process.env.BUG_DATA_S3_BUCKET;
 
 // ---------------------------------------------------------------------------
 // Initialize shared modules
@@ -60,14 +61,38 @@ async function loadModules() {
 }
 
 // ---------------------------------------------------------------------------
+// Configuration endpoint
+// ---------------------------------------------------------------------------
+
+app.get('/api/config', async function(req, res) {
+  const projectKey = req.query.project || 'RHOAIENG';
+
+  // Refresh is disabled when using S3 (deployed mode)
+  const refreshEnabled = !S3_BUCKET;
+
+  // Get last updated timestamp from classified bugs data
+  let lastUpdated = null;
+  try {
+    const data = await readFromStorage(`${projectKey}/classified-bugs.json`);
+    if (data && data.lastUpdated) {
+      lastUpdated = data.lastUpdated;
+    }
+  } catch (error) {
+    console.error('Error reading lastUpdated:', error);
+  }
+
+  res.json({ refreshEnabled, lastUpdated });
+});
+
+// ---------------------------------------------------------------------------
 // Reader routes (read JSON from data/ directory)
 // ---------------------------------------------------------------------------
 
-app.get('/api/bugs', function(req, res) {
+app.get('/api/bugs', async function(req, res) {
   const { classification, priority, team, dateFrom, dateTo } = req.query;
   const projectKey = req.query.project || 'RHOAIENG';
 
-  const data = readFromStorage(`${projectKey}/classified-bugs.json`);
+  const data = await readFromStorage(`${projectKey}/classified-bugs.json`);
   if (!data) {
     return res.status(500).json({ error: `No data found for project ${projectKey}. Please refresh to fetch data from Jira.` });
   }
@@ -94,9 +119,9 @@ app.get('/api/bugs', function(req, res) {
   res.json({ bugs, lastUpdated: data.lastUpdated });
 });
 
-app.get('/api/bugs/:key', function(req, res) {
+app.get('/api/bugs/:key', async function(req, res) {
   const projectKey = req.query.project || 'RHOAIENG';
-  const data = readFromStorage(`${projectKey}/classified-bugs.json`);
+  const data = await readFromStorage(`${projectKey}/classified-bugs.json`);
 
   if (!data) {
     return res.status(500).json({ error: `No data found for project ${projectKey}` });
@@ -110,9 +135,9 @@ app.get('/api/bugs/:key', function(req, res) {
   res.json(bug);
 });
 
-app.get('/api/summary', function(req, res) {
+app.get('/api/summary', async function(req, res) {
   const projectKey = req.query.project || 'RHOAIENG';
-  const data = readFromStorage(`${projectKey}/bug-summary.json`);
+  const data = await readFromStorage(`${projectKey}/bug-summary.json`);
 
   if (!data) {
     return res.status(500).json({ error: `No summary data found for project ${projectKey}. Please refresh to fetch data from Jira.` });
@@ -126,6 +151,11 @@ app.get('/api/summary', function(req, res) {
 // ---------------------------------------------------------------------------
 
 app.get('/api/refresh', async function(req, res) {
+  // Disable refresh when using S3 (deployed mode)
+  if (S3_BUCKET) {
+    return res.status(403).json({ error: 'Refresh disabled — use the local refresh script (npm run refresh)' });
+  }
+
   // Set SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -157,7 +187,7 @@ app.get('/api/refresh', async function(req, res) {
     console.log(`Found ${bugs.length} unresolved bugs from Jira`);
 
     // Load previously classified bugs — reuse classifications that haven't changed
-    const existingData = hardRefresh ? null : readFromStorage(`${projectKey}/classified-bugs.json`);
+    const existingData = hardRefresh ? null : await readFromStorage(`${projectKey}/classified-bugs.json`);
     const existingBugsMap = new Map();
     if (existingData && existingData.bugs) {
       for (const bug of existingData.bugs) {
@@ -206,10 +236,10 @@ app.get('/api/refresh', async function(req, res) {
       lastUpdated: new Date().toISOString(),
       bugs: classifiedBugs
     };
-    writeToStorage(`${projectKey}/classified-bugs.json`, bugsOutput);
+    await writeToStorage(`${projectKey}/classified-bugs.json`, bugsOutput);
 
     const summary = buildSummary(classifiedBugs);
-    writeToStorage(`${projectKey}/bug-summary.json`, summary);
+    await writeToStorage(`${projectKey}/bug-summary.json`, summary);
 
     console.log(`Saved ${classifiedBugs.length} classified bugs and summary`);
 
