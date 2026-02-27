@@ -142,8 +142,7 @@
 <script>
 import ClassificationBadge from './ClassificationBadge.vue';
 import FilterBar from './FilterBar.vue';
-import { j2m } from 'jira2md';
-import { marked } from 'marked';
+import J2M from 'jira2md';
 
 export default {
   name: 'BugListView',
@@ -208,13 +207,9 @@ export default {
     renderDescription(desc) {
       if (!desc) return '<em>No description</em>';
       try {
-        // Truncate very long descriptions before rendering
         const truncated = desc.length > 3000 ? desc.substring(0, 3000) + '\n\n...' : desc;
-        // Jira wiki → Markdown → HTML
-        const md = j2m(truncated);
-        return marked.parse(md);
+        return J2M.jira_to_html(truncated);
       } catch (e) {
-        // Fallback to plain text if parsing fails
         const escaped = desc.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<pre>${escaped.substring(0, 3000)}</pre>`;
       }
