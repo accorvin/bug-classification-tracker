@@ -1,6 +1,51 @@
 <template>
   <div class="max-w-5xl mx-auto px-8 py-8">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Bug Classification Dashboard</h2>
+    <div class="flex items-center gap-3 mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">Bug Classification Dashboard</h2>
+      <button
+        @click="showHelp = !showHelp"
+        class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ showHelp ? 'Hide Help' : 'How It Works' }}
+      </button>
+    </div>
+
+    <!-- Help panel -->
+    <div v-if="showHelp" class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+      <div class="flex justify-between items-start mb-3">
+        <h3 class="text-lg font-semibold text-blue-900">About This Dashboard</h3>
+        <button @click="showHelp = false" class="text-blue-400 hover:text-blue-600">
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-4 text-sm text-blue-800">
+        <div>
+          <h4 class="font-semibold mb-1">What does this app do?</h4>
+          <p>This dashboard tracks and classifies all <strong>unresolved bugs</strong> in the RHOAIENG Jira project. It helps engineering leaders spot patterns — are we accumulating regressions? Are usability issues piling up? — without manually triaging hundreds of bugs.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-1">Which bugs are included?</h4>
+          <p>All bugs in the <strong>RHOAIENG</strong> project with <code class="bg-blue-100 px-1 rounded">resolution = Unresolved</code>. Resolved, closed, and done bugs are excluded. Data is refreshed on demand via the Refresh button.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-1">How are bugs classified?</h4>
+          <p>Classification uses a two-tier approach:</p>
+          <ol class="list-decimal ml-5 mt-1 space-y-1">
+            <li><strong>Rule-based (instant, free)</strong> — Bugs with "regression" labels or keywords are classified as <em>Regression</em>. Bugs with UX/accessibility labels or UXD components are classified as <em>Usability</em>.</li>
+            <li><strong>LLM-assisted (Claude Haiku on Vertex AI)</strong> — Remaining bugs are analyzed by an LLM that reads the summary and description, then classifies them as <em>General Engineering</em> (logic errors, crashes, performance) or <em>Uncategorized</em> (insufficient information).</li>
+          </ol>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-1">Refresh vs Hard Refresh</h4>
+          <p><strong>Refresh</strong> fetches fresh data from Jira and only reclassifies bugs that have been updated since last classification. <strong>Hard Refresh</strong> reclassifies every bug from scratch — useful after rule changes or to reset LLM classifications.</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Loading state -->
     <div v-if="isLoading" class="text-center py-12">
@@ -129,6 +174,11 @@ export default {
       type: Boolean,
       default: false
     }
+  },
+  data() {
+    return {
+      showHelp: false
+    };
   },
   methods: {
     percentage(count, total) {
