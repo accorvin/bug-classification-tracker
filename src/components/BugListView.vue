@@ -103,7 +103,7 @@
                   <div class="space-y-3">
                     <div>
                       <span class="text-sm font-medium text-gray-700">Description:</span>
-                      <p class="text-sm text-gray-600 mt-1 whitespace-pre-wrap">{{ truncateDescription(bug.description) }}</p>
+                      <div class="text-sm text-gray-600 mt-1 prose prose-sm max-w-none" v-html="renderDescription(bug.description)"></div>
                     </div>
                     <div>
                       <span class="text-sm font-medium text-gray-700">Classification Reason:</span>
@@ -142,6 +142,8 @@
 <script>
 import ClassificationBadge from './ClassificationBadge.vue';
 import FilterBar from './FilterBar.vue';
+import { j2m } from 'jira2md';
+import { marked } from 'marked';
 
 export default {
   name: 'BugListView',
@@ -203,36 +205,19 @@ export default {
     toggleExpanded(bugKey) {
       this.expandedBugKey = this.expandedBugKey === bugKey ? null : bugKey;
     },
-    truncateDescription(desc) {
-      if (!desc) return 'No description';
-      // Strip Jira wiki markup for cleaner display
-      let clean = desc
-        // Headings: h1. h2. h3. etc
-        .replace(/^h[1-6]\.\s*/gm, '')
-        // Code blocks: {code:lang}...{code} or {code}...{code}
-        .replace(/\{code(?::[^}]*)?\}([\s\S]*?)\{code\}/g, (_, code) => code.trim())
-        // No-format blocks
-        .replace(/\{noformat\}([\s\S]*?)\{noformat\}/g, (_, text) => text.trim())
-        // Panels
-        .replace(/\{panel(?::[^}]*)?\}([\s\S]*?)\{panel\}/g, (_, text) => text.trim())
-        // Bold: *text*
-        .replace(/\*([^*\n]+)\*/g, '$1')
-        // Italic: _text_
-        .replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '$1')
-        // Monospace: {{text}}
-        .replace(/\{\{([^}]+)\}\}/g, '$1')
-        // Links: [text|url] or [url]
-        .replace(/\[([^|[\]]+)\|([^\]]+)\]/g, '$1')
-        .replace(/\[([^\]]+)\]/g, '$1')
-        // Color/quote macros
-        .replace(/\{color[^}]*\}/g, '')
-        .replace(/\{quote\}/g, '')
-        // Bullet/number lists: leading * or # or -
-        .replace(/^[*#\-]+\s*/gm, '• ')
-        // Collapse multiple blank lines
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-      return clean.length > 500 ? clean.substring(0, 500) + '...' : clean;
+    renderDescription(desc) {
+      if (!desc) return '<em>No description</em>';
+      try {
+        // Truncate very long descriptions before rendering
+        const truncated = desc.length > 3000 ? desc.substring(0, 3000) + '\n\n...' : desc;
+        // Jira wiki → Markdown → HTML
+        const md = j2m(truncated);
+        return marked.parse(md);
+      } catch (e) {
+        // Fallback to plain text if parsing fails
+        const escaped = desc.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<pre>${escaped.substring(0, 3000)}</pre>`;
+      }
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A';
