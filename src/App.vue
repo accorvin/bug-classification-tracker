@@ -2,7 +2,7 @@
   <AuthGuard>
     <div id="app" class="min-h-screen bg-gray-50">
       <header class="bg-primary-700 text-white shadow-lg">
-        <div class="container mx-auto px-6 py-2 flex items-center justify-between">
+        <div class="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img src="/redhat-logo.svg" alt="Red Hat" class="h-8" />
             <h1 class="text-xl font-bold">AI Engineering Bug Classifier</h1>
@@ -11,33 +11,58 @@
             <div v-if="lastUpdated" class="text-sm text-primary-100">
               Last Updated: {{ formatDate(lastUpdated) }}
             </div>
-            <button
-              @click="refreshData"
-              :disabled="isRefreshing"
-              class="px-3 py-1 text-sm bg-white text-primary-700 rounded-md font-medium hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-            >
-              <svg
-                v-if="isRefreshing"
-                class="animate-spin h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+            <!-- Split refresh button -->
+            <div class="relative flex">
+              <button
+                @click="refreshData(false)"
+                :disabled="isRefreshing"
+                class="px-3 py-1 text-sm bg-white text-primary-700 rounded-l-md font-medium hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
               >
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <svg
-                v-else
-                class="h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+                <svg
+                  v-if="isRefreshing"
+                  class="animate-spin h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg
+                  v-else
+                  class="h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+              </button>
+              <button
+                @click="showRefreshMenu = !showRefreshMenu"
+                :disabled="isRefreshing"
+                class="px-1.5 py-1 text-sm bg-white text-primary-700 rounded-r-md font-medium hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-primary-200"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
-            </button>
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <!-- Dropdown -->
+              <div
+                v-if="showRefreshMenu"
+                class="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-20"
+              >
+                <button
+                  @click="refreshData(true); showRefreshMenu = false"
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <div class="font-medium">Hard Refresh</div>
+                  <div class="text-xs text-gray-500">Re-fetch and reclassify all bugs</div>
+                </button>
+              </div>
+            </div>
 
             <!-- User Avatar and Sign Out -->
             <div class="relative" v-if="authUser">
@@ -86,7 +111,7 @@
 
       <!-- Navigation -->
       <nav class="bg-white shadow">
-        <div class="container mx-auto px-6">
+        <div class="max-w-screen-2xl mx-auto px-4">
           <div class="flex space-x-8">
             <button
               @click="currentView = 'dashboard'"
@@ -116,7 +141,7 @@
 
       <!-- Refresh progress bar -->
       <div v-if="isRefreshing" class="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
-        <div class="container mx-auto">
+        <div class="max-w-screen-2xl mx-auto">
           <div class="flex items-center justify-between mb-1">
             <span class="text-sm font-medium text-gray-700">{{ refreshProgressMessage }}</span>
             <span class="text-sm text-gray-500">{{ refreshProgressPercent }}%</span>
@@ -195,7 +220,8 @@ export default {
       toasts: [],
       projectKey: 'RHOAIENG',
       refreshProgressPercent: 0,
-      refreshProgressMessage: 'Starting refresh...'
+      refreshProgressMessage: 'Starting refresh...',
+      showRefreshMenu: false
     };
   },
   watch: {
@@ -253,7 +279,7 @@ export default {
       }
     },
 
-    async refreshData() {
+    async refreshData(hardRefresh = false) {
       this.isRefreshing = true;
       this.refreshProgressPercent = 0;
       this.refreshProgressMessage = 'Starting refresh...';
@@ -261,6 +287,7 @@ export default {
       try {
         const result = await refreshBugs(this.projectKey, {
           concurrency: 20,
+          hardRefresh,
           onProgress: (data) => {
             if (data.phase === 'fetching') {
               this.refreshProgressPercent = 5;
@@ -301,9 +328,9 @@ export default {
     },
 
     handleClickOutside(event) {
-      const userMenu = event.target.closest('.relative');
-      if (!userMenu) {
+      if (!event.target.closest('.relative')) {
         this.showUserMenu = false;
+        this.showRefreshMenu = false;
       }
     },
 

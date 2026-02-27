@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-6 py-8">
+  <div class="max-w-screen-2xl mx-auto px-4 py-8">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Bug List</h2>
 
     <!-- Filter bar -->

@@ -48,9 +48,10 @@ async function getAuthToken() {
  * @param {Function} [options.onProgress] - Callback for progress events: (data) => void
  * @returns {Promise<Object>} - Resolves with the complete event data on success
  */
-export function refreshBugs(projectKey = 'RHOAIENG', { concurrency = 20, onProgress } = {}) {
+export function refreshBugs(projectKey = 'RHOAIENG', { concurrency = 20, hardRefresh = false, onProgress } = {}) {
   return new Promise((resolve, reject) => {
     const params = new URLSearchParams({ project: projectKey, concurrency: String(concurrency) });
+    if (hardRefresh) params.set('hard', '1');
     const url = `${API_ENDPOINT}/refresh?${params}`;
 
     const es = new EventSource(url);

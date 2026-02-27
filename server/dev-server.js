@@ -141,6 +141,7 @@ app.get('/api/refresh', async function(req, res) {
 
     const projectKey = req.query.project || 'RHOAIENG';
     const concurrency = parseInt(req.query.concurrency, 10) || 20;
+    const hardRefresh = req.query.hard === '1';
 
     if (!JIRA_TOKEN) {
       sendEvent('error', { error: 'JIRA_TOKEN environment variable is not set. Add it to your .env file.' });
@@ -156,7 +157,7 @@ app.get('/api/refresh', async function(req, res) {
     console.log(`Found ${bugs.length} unresolved bugs from Jira`);
 
     // Load previously classified bugs — reuse classifications that haven't changed
-    const existingData = readFromStorage(`${projectKey}/classified-bugs.json`);
+    const existingData = hardRefresh ? null : readFromStorage(`${projectKey}/classified-bugs.json`);
     const existingBugsMap = new Map();
     if (existingData && existingData.bugs) {
       for (const bug of existingData.bugs) {
