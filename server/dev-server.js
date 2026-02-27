@@ -122,24 +122,34 @@ app.get('/api/summary', function(req, res) {
 });
 
 // ---------------------------------------------------------------------------
-// Refresh route (fetch from Jira and classify)
+// Refresh route (fetch from Jira and classify) — SSE streaming
 // ---------------------------------------------------------------------------
 
-app.post('/api/refresh', async function(req, res) {
+app.get('/api/refresh', async function(req, res) {
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  function sendEvent(event, data) {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  }
+
   try {
     await loadModules();
 
-    const projectKey = req.body.project || 'RHOAIENG';
-    const concurrency = req.body.concurrency || 20;
+    const projectKey = req.query.project || 'RHOAIENG';
+    const concurrency = parseInt(req.query.concurrency, 10) || 20;
 
     if (!JIRA_TOKEN) {
-      return res.status(500).json({
-        success: false,
-        error: 'JIRA_TOKEN environment variable is not set. Add it to your .env file.'
-      });
+      sendEvent('error', { error: 'JIRA_TOKEN environment variable is not set. Add it to your .env file.' });
+      res.end();
+      return;
     }
 
     console.log(`Fetching unresolved bugs from Jira for project ${projectKey}...`);
+    sendEvent('progress', { phase: 'fetching', message: 'Fetching bugs from Jira...' });
 
     // Fetch bugs from Jira (only unresolved)
     const bugs = await fetchBugs(projectKey, JIRA_TOKEN);
@@ -169,9 +179,23 @@ app.post('/api/refresh', async function(req, res) {
 
     console.log(`Cache hit: ${cached.length}, need classification: ${toClassify.length}`);
 
-    // Batch classify with concurrency
+    // Send initial classifying event with cache info
+    sendEvent('progress', {
+      phase: 'classifying',
+      classified: cached.length,
+      total: bugs.length,
+      message: `${cached.length} cached, ${toClassify.length} to classify`
+    });
+
+    // Batch classify with concurrency — stream progress via SSE
     const freshlyClassified = await classifyBugsBatch(toClassify, concurrency, (done, total, msg) => {
       console.log(`  [${done}/${total}] ${msg}`);
+      sendEvent('progress', {
+        phase: 'classifying',
+        classified: cached.length + done,
+        total: bugs.length,
+        message: `LLM: ${msg}`
+      });
     });
 
     const classifiedBugs = [...cached, ...freshlyClassified];
@@ -188,16 +212,18 @@ app.post('/api/refresh', async function(req, res) {
 
     console.log(`Saved ${classifiedBugs.length} classified bugs and summary`);
 
-    res.json({
+    sendEvent('complete', {
       success: true,
       totalBugs: bugs.length,
       classified: toClassify.length,
       skipped: cached.length,
       summary
     });
+    res.end();
   } catch (error) {
     console.error('Refresh error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    sendEvent('error', { error: error.message });
+    res.end();
   }
 });
 

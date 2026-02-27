@@ -51,13 +51,13 @@ describe('classifyWithRules', () => {
       summary: 'Test bug',
       description: 'Test description',
       labels: [],
-      component: 'UI Components'
+      component: 'UXD'
     };
 
     const result = classifyWithRules(bug);
     expect(result).toBeTruthy();
     expect(result.classification).toBe(CATEGORIES.USABILITY);
-    expect(result.classificationReason).toContain('UI Components');
+    expect(result.classificationReason).toContain('UXD');
   });
 
   it('should return null when no rule matches', () => {

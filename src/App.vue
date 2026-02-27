@@ -114,6 +114,22 @@
         </div>
       </nav>
 
+      <!-- Refresh progress bar -->
+      <div v-if="isRefreshing" class="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
+        <div class="container mx-auto">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">{{ refreshProgressMessage }}</span>
+            <span class="text-sm text-gray-500">{{ refreshProgressPercent }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div
+              class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              :style="{ width: refreshProgressPercent + '%' }"
+            ></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Main content -->
       <main class="relative">
         <DashboardView
@@ -126,8 +142,6 @@
           :bugs="bugs"
           :isLoading="isLoading"
         />
-
-        <LoadingOverlay v-if="isRefreshing" />
       </main>
 
       <!-- Toasts -->
@@ -179,7 +193,9 @@ export default {
       showUserMenu: false,
       avatarLoadError: false,
       toasts: [],
-      projectKey: 'RHOAIENG'
+      projectKey: 'RHOAIENG',
+      refreshProgressPercent: 0,
+      refreshProgressMessage: 'Starting refresh...'
     };
   },
   watch: {
@@ -233,10 +249,27 @@ export default {
 
     async refreshData() {
       this.isRefreshing = true;
+      this.refreshProgressPercent = 0;
+      this.refreshProgressMessage = 'Starting refresh...';
 
       try {
-        const result = await refreshBugs(this.projectKey);
+        const result = await refreshBugs(this.projectKey, {
+          concurrency: 20,
+          onProgress: (data) => {
+            if (data.phase === 'fetching') {
+              this.refreshProgressPercent = 5;
+              this.refreshProgressMessage = data.message || 'Fetching bugs from Jira...';
+            } else if (data.phase === 'classifying') {
+              const total = data.total || 1;
+              const classified = data.classified || 0;
+              // Reserve 5-100% for classifying phase
+              this.refreshProgressPercent = Math.round(5 + (classified / total) * 95);
+              this.refreshProgressMessage = data.message || `Classifying: ${classified}/${total}`;
+            }
+          }
+        });
 
+        this.refreshProgressPercent = 100;
         this.showToast(`Successfully refreshed ${result.totalBugs} bugs! Classified ${result.classified}, skipped ${result.skipped}.`, 'success', 5000);
 
         // Reload data
@@ -251,6 +284,8 @@ export default {
         }
       } finally {
         this.isRefreshing = false;
+        this.refreshProgressPercent = 0;
+        this.refreshProgressMessage = 'Starting refresh...';
       }
     },
 

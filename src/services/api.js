@@ -41,38 +41,49 @@ async function getAuthToken() {
 }
 
 /**
- * Refresh bugs from Jira and classify them
+ * Refresh bugs from Jira and classify them via SSE stream.
  * @param {string} projectKey - Jira project key (e.g., 'RHOAIENG')
- * @returns {Promise<Object>}
+ * @param {Object} options
+ * @param {number} [options.concurrency=20] - LLM concurrency
+ * @param {Function} [options.onProgress] - Callback for progress events: (data) => void
+ * @returns {Promise<Object>} - Resolves with the complete event data on success
  */
-export async function refreshBugs(projectKey = 'RHOAIENG') {
-  try {
-    const token = await getAuthToken();
+export function refreshBugs(projectKey = 'RHOAIENG', { concurrency = 20, onProgress } = {}) {
+  return new Promise((resolve, reject) => {
+    const params = new URLSearchParams({ project: projectKey, concurrency: String(concurrency) });
+    const url = `${API_ENDPOINT}/refresh?${params}`;
 
-    const response = await fetch(`${API_ENDPOINT}/refresh`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ project: projectKey })
+    const es = new EventSource(url);
+
+    es.addEventListener('progress', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (onProgress) onProgress(data);
+      } catch (err) {
+        console.warn('Failed to parse progress event:', err);
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
+    es.addEventListener('complete', (e) => {
+      es.close();
+      try {
+        resolve(JSON.parse(e.data));
+      } catch (err) {
+        reject(new Error('Failed to parse complete event'));
+      }
+    });
 
-    return await response.json();
-  } catch (error) {
-    console.error('Refresh bugs error:', error);
-
-    if (error.message.includes('401')) {
-      throw new Error('Authentication failed. Please sign in again.');
-    }
-
-    throw new Error(error.message || 'Failed to refresh bugs');
-  }
+    es.addEventListener('error', (e) => {
+      es.close();
+      try {
+        const data = JSON.parse(e.data);
+        reject(new Error(data.error || 'Refresh failed'));
+      } catch {
+        // EventSource connection error (not a server-sent error event)
+        reject(new Error('Connection error during refresh'));
+      }
+    });
+  });
 }
 
 /**
