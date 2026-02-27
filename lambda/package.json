@@ -1,0 +1,10 @@
+{
+  "name": "bug-tracker-lambda",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codegenie/serverless-express": "^4.16.0",
+    "express": "^5.2.1",
+    "@aws-sdk/client-s3": "^3.709.0"
+  }
+}

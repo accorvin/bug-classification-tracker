@@ -43,3 +43,7 @@ dist/
 node_modules/
 aws-exports.js
 awsconfiguration.json
+
+# Lambda deploy artifacts
+lambda-deploy.zip
+lambda/node_modules/
