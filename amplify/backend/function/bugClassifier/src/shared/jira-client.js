@@ -136,26 +136,15 @@ function extractComponent(components) {
 }
 
 /**
- * Extract team from custom fields
+ * Extract team from component
  * @param {Object} fields - Jira fields object
  * @returns {string}
  */
 function extractTeam(fields) {
-  // Check for scrum team custom field (adjust field ID as needed)
-  // This is a placeholder - adjust based on actual Jira configuration
-  if (fields.customfield_12311140?.value) {
-    return fields.customfield_12311140.value;
-  }
-
-  // Try to extract from other custom fields
-  if (fields.customfield_12311140) {
-    return fields.customfield_12311140;
-  }
-
-  // Default to component-based team name
+  // Use the primary component as the team name
   const component = extractComponent(fields.components);
   if (component !== 'Unknown') {
-    return `${component} Team`;
+    return component;
   }
 
   return 'Unknown';

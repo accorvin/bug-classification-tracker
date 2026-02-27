@@ -205,6 +205,12 @@ export default {
       if (newUser && !oldUser) {
         this.loadData();
       }
+    },
+    currentView() {
+      // Reload data when switching tabs to ensure fresh state
+      if (this.authUser && !this.isLoading && !this.isRefreshing) {
+        this.loadData();
+      }
     }
   },
   mounted() {

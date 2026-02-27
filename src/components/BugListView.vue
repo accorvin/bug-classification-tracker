@@ -44,75 +44,75 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr
-              v-for="bug in filteredBugs"
-              :key="bug.key"
-              @click="toggleExpanded(bug.key)"
-              class="hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-700">
-                <a
-                  :href="`https://issues.redhat.com/browse/${bug.key}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="hover:underline"
-                  @click.stop
-                >
-                  {{ bug.key }}
-                </a>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-900">
-                <div class="max-w-md truncate">{{ bug.summary }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ bug.priority }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <ClassificationBadge
-                  :classification="bug.classification"
-                  :method="bug.classificationMethod"
-                  :reason="bug.classificationReason"
-                />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ bug.team }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ bug.status }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDate(bug.created) }}
-              </td>
-            </tr>
-            <!-- Expanded details row -->
-            <tr v-if="expandedBugKey === bug.key" :key="`${bug.key}-details`" class="bg-gray-50">
-              <td colspan="7" class="px-6 py-4">
-                <div class="space-y-3">
-                  <div>
-                    <span class="text-sm font-medium text-gray-700">Description:</span>
-                    <p class="text-sm text-gray-600 mt-1">{{ bug.description || 'No description' }}</p>
-                  </div>
-                  <div>
-                    <span class="text-sm font-medium text-gray-700">Classification Reason:</span>
-                    <p class="text-sm text-gray-600 mt-1">{{ bug.classificationReason }}</p>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4 text-sm">
+            <template v-for="bug in filteredBugs" :key="bug.key">
+              <tr
+                @click="toggleExpanded(bug.key)"
+                class="hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-700">
+                  <a
+                    :href="`https://issues.redhat.com/browse/${bug.key}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:underline"
+                    @click.stop
+                  >
+                    {{ bug.key }}
+                  </a>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  <div class="max-w-md truncate">{{ bug.summary }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ bug.priority }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <ClassificationBadge
+                    :classification="bug.classification"
+                    :method="bug.classificationMethod"
+                    :reason="bug.classificationReason"
+                  />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ bug.team }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ bug.status }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatDate(bug.created) }}
+                </td>
+              </tr>
+              <!-- Expanded details row -->
+              <tr v-if="expandedBugKey === bug.key" :key="`${bug.key}-details`" class="bg-gray-50">
+                <td colspan="7" class="px-6 py-4">
+                  <div class="space-y-3">
                     <div>
-                      <span class="font-medium text-gray-700">Assignee:</span>
-                      <span class="text-gray-600 ml-2">{{ bug.assignee || 'Unassigned' }}</span>
+                      <span class="text-sm font-medium text-gray-700">Description:</span>
+                      <p class="text-sm text-gray-600 mt-1 whitespace-pre-wrap">{{ truncateDescription(bug.description) }}</p>
                     </div>
                     <div>
-                      <span class="font-medium text-gray-700">Reporter:</span>
-                      <span class="text-gray-600 ml-2">{{ bug.reporter || 'Unknown' }}</span>
+                      <span class="text-sm font-medium text-gray-700">Classification Reason:</span>
+                      <p class="text-sm text-gray-600 mt-1">{{ bug.classificationReason }}</p>
                     </div>
-                    <div>
-                      <span class="font-medium text-gray-700">Component:</span>
-                      <span class="text-gray-600 ml-2">{{ bug.component }}</span>
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span class="font-medium text-gray-700">Assignee:</span>
+                        <span class="text-gray-600 ml-2">{{ bug.assignee || 'Unassigned' }}</span>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-700">Reporter:</span>
+                        <span class="text-gray-600 ml-2">{{ bug.reporter || 'Unknown' }}</span>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-700">Component:</span>
+                        <span class="text-gray-600 ml-2">{{ bug.component }}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-            </tr>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -180,6 +180,10 @@ export default {
     },
     toggleExpanded(bugKey) {
       this.expandedBugKey = this.expandedBugKey === bugKey ? null : bugKey;
+    },
+    truncateDescription(desc) {
+      if (!desc) return 'No description';
+      return desc.length > 500 ? desc.substring(0, 500) + '...' : desc;
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A';
