@@ -87,28 +87,39 @@
               <!-- Expanded details row -->
               <tr v-if="expandedBugKey === bug.key" :key="`${bug.key}-details`" class="bg-gray-50">
                 <td colspan="7" class="px-6 py-4">
-                  <div class="space-y-3">
+                  <div class="space-y-4">
+                    <!-- Metadata grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm bg-white rounded-md p-3 border border-gray-200">
+                      <div>
+                        <span class="font-medium text-gray-500">Classification Reason</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.classificationReason }}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-500">Assignee</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.assignee || 'Unassigned' }}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-500">Reporter</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.reporter || 'Unknown' }}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-500">Component</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.component }}</p>
+                      </div>
+                      <div v-if="bug.fixVersions && bug.fixVersions.length">
+                        <span class="font-medium text-gray-500">Fix Version</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.fixVersions.join(', ') }}</p>
+                      </div>
+                      <div v-if="bug.affectsVersions && bug.affectsVersions.length">
+                        <span class="font-medium text-gray-500">Affects Version</span>
+                        <p class="text-gray-900 mt-0.5">{{ bug.affectsVersions.join(', ') }}</p>
+                      </div>
+                    </div>
+
+                    <!-- Description -->
                     <div>
                       <span class="text-sm font-medium text-gray-700">Description:</span>
                       <div class="text-sm text-gray-600 mt-1 prose prose-sm max-w-none" v-html="renderDescription(bug.description)"></div>
-                    </div>
-                    <div>
-                      <span class="text-sm font-medium text-gray-700">Classification Reason:</span>
-                      <p class="text-sm text-gray-600 mt-1">{{ bug.classificationReason }}</p>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span class="font-medium text-gray-700">Assignee:</span>
-                        <span class="text-gray-600 ml-2">{{ bug.assignee || 'Unassigned' }}</span>
-                      </div>
-                      <div>
-                        <span class="font-medium text-gray-700">Reporter:</span>
-                        <span class="text-gray-600 ml-2">{{ bug.reporter || 'Unknown' }}</span>
-                      </div>
-                      <div>
-                        <span class="font-medium text-gray-700">Component:</span>
-                        <span class="text-gray-600 ml-2">{{ bug.component }}</span>
-                      </div>
                     </div>
                   </div>
                 </td>

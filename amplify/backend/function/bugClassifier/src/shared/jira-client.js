@@ -27,7 +27,7 @@ export async function fetchBugs(projectKey, jiraToken) {
     'updated',
     'resolution',
     'fixVersions',
-    'customfield_12311140' // Example custom field for team/scrum team
+    'versions' // Affects Version
   ].join(',');
 
   let startAt = 0;
@@ -90,6 +90,7 @@ function transformJiraIssue(jiraIssue) {
     updated: fields.updated || null,
     resolution: fields.resolution?.name || null,
     fixVersions: (fields.fixVersions || []).map(v => v.name),
+    affectsVersions: (fields.versions || []).map(v => v.name),
     team: extractTeam(fields)
   };
 }

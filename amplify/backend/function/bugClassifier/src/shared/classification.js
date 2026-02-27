@@ -229,7 +229,8 @@ export function buildSummary(bugs) {
     totalBugs: bugs.length,
     byClassification: {},
     byPriority: {},
-    byTeam: {}
+    byTeam: {},
+    byVersion: {}
   };
 
   // Initialize classification buckets
@@ -276,6 +277,16 @@ export function buildSummary(bugs) {
       summary.byTeam[team] = 0;
     }
     summary.byTeam[team]++;
+
+    // By version (affects versions)
+    const versions = bug.affectsVersions || [];
+    if (versions.length === 0) {
+      summary.byVersion['Unset'] = (summary.byVersion['Unset'] || 0) + 1;
+    } else {
+      for (const version of versions) {
+        summary.byVersion[version] = (summary.byVersion[version] || 0) + 1;
+      }
+    }
   }
 
   return summary;

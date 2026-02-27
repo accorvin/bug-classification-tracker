@@ -131,24 +131,50 @@
         </div>
       </div>
 
-      <!-- Team breakdown -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">By Team</h3>
-        <div class="space-y-3">
-          <div
-            v-for="(count, team) in summary.byTeam"
-            :key="team"
-            class="flex items-center justify-between"
-          >
-            <span class="text-sm font-medium text-gray-700">{{ team }}</span>
-            <div class="flex items-center gap-3">
-              <div class="w-48 bg-gray-200 rounded-full h-2">
-                <div
-                  class="bg-green-600 h-2 rounded-full"
-                  :style="{ width: percentage(count, summary.totalBugs) + '%' }"
-                ></div>
+      <!-- Version and Team side by side -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Version breakdown -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">By Affects Version</h3>
+          <div class="space-y-3">
+            <div
+              v-for="[version, count] in sortedVersions"
+              :key="version"
+              class="flex items-center justify-between"
+            >
+              <span class="text-sm font-medium text-gray-700">{{ version }}</span>
+              <div class="flex items-center gap-3">
+                <div class="w-36 bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-purple-600 h-2 rounded-full"
+                    :style="{ width: percentage(count, summary.totalBugs) + '%' }"
+                  ></div>
+                </div>
+                <span class="text-sm text-gray-600 w-12 text-right">{{ count }}</span>
               </div>
-              <span class="text-sm text-gray-600 w-16 text-right">{{ count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team breakdown -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">By Team</h3>
+          <div class="space-y-3">
+            <div
+              v-for="(count, team) in summary.byTeam"
+              :key="team"
+              class="flex items-center justify-between"
+            >
+              <span class="text-sm font-medium text-gray-700">{{ team }}</span>
+              <div class="flex items-center gap-3">
+                <div class="w-36 bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-green-600 h-2 rounded-full"
+                    :style="{ width: percentage(count, summary.totalBugs) + '%' }"
+                  ></div>
+                </div>
+                <span class="text-sm text-gray-600 w-12 text-right">{{ count }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -179,6 +205,18 @@ export default {
     return {
       showHelp: false
     };
+  },
+  computed: {
+    sortedVersions() {
+      if (!this.summary?.byVersion) return [];
+      return Object.entries(this.summary.byVersion)
+        .sort((a, b) => {
+          // "Unset" always last
+          if (a[0] === 'Unset') return 1;
+          if (b[0] === 'Unset') return -1;
+          return b[1] - a[1];
+        });
+    }
   },
   methods: {
     percentage(count, total) {
