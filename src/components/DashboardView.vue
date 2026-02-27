@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-screen-2xl mx-auto px-4 py-8">
+  <div class="px-8 py-8">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Bug Classification Dashboard</h2>
 
     <!-- Loading state -->

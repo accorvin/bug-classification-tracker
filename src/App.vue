@@ -2,7 +2,7 @@
   <AuthGuard>
     <div id="app" class="min-h-screen bg-gray-50">
       <header class="bg-primary-700 text-white shadow-lg">
-        <div class="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-between">
+        <div class="px-8 py-2 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img src="/redhat-logo.svg" alt="Red Hat" class="h-8" />
             <h1 class="text-xl font-bold">AI Engineering Bug Classifier</h1>
@@ -111,7 +111,7 @@
 
       <!-- Navigation -->
       <nav class="bg-white shadow">
-        <div class="max-w-screen-2xl mx-auto px-4">
+        <div class="px-8">
           <div class="flex space-x-8">
             <button
               @click="currentView = 'dashboard'"
@@ -141,7 +141,7 @@
 
       <!-- Refresh progress bar -->
       <div v-if="isRefreshing" class="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
-        <div class="max-w-screen-2xl mx-auto">
+        <div class="px-8">
           <div class="flex items-center justify-between mb-1">
             <span class="text-sm font-medium text-gray-700">{{ refreshProgressMessage }}</span>
             <span class="text-sm text-gray-500">{{ refreshProgressPercent }}%</span>
