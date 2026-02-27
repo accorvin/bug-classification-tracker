@@ -22,10 +22,21 @@
           <div
             v-for="(data, category) in summary.byClassification"
             :key="category"
-            class="border rounded-lg p-4"
+            class="border rounded-lg p-4 relative group"
             :class="categoryBorderClass(category)"
           >
-            <div class="text-sm font-medium text-gray-600 mb-1">{{ categoryLabel(category) }}</div>
+            <div class="flex items-center gap-1.5">
+              <div class="text-sm font-medium text-gray-600 mb-1">{{ categoryLabel(category) }}</div>
+              <div class="relative mb-1">
+                <svg class="h-3.5 w-3.5 text-gray-400 cursor-help" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-2.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+                  {{ categoryDescription(category) }}
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
+            </div>
             <div class="text-2xl font-bold" :class="categoryTextClass(category)">
               {{ data.count }}
             </div>
@@ -132,6 +143,15 @@ export default {
         'uncategorized': 'Uncategorized'
       };
       return labels[category] || category;
+    },
+    categoryDescription(category) {
+      const descriptions = {
+        'regression': 'Bugs that broke previously working functionality. Detected via "regression" labels or keywords.',
+        'usability': 'UI/UX issues, confusing workflows, and accessibility problems. Detected via UX labels or components.',
+        'general-engineering': 'Logic errors, crashes, performance issues, and missing validation. Classified by LLM analysis.',
+        'uncategorized': 'Bugs that could not be confidently classified by rules or LLM.'
+      };
+      return descriptions[category] || '';
     },
     categoryBorderClass(category) {
       const classes = {

@@ -205,7 +205,34 @@ export default {
     },
     truncateDescription(desc) {
       if (!desc) return 'No description';
-      return desc.length > 500 ? desc.substring(0, 500) + '...' : desc;
+      // Strip Jira wiki markup for cleaner display
+      let clean = desc
+        // Headings: h1. h2. h3. etc
+        .replace(/^h[1-6]\.\s*/gm, '')
+        // Code blocks: {code:lang}...{code} or {code}...{code}
+        .replace(/\{code(?::[^}]*)?\}([\s\S]*?)\{code\}/g, (_, code) => code.trim())
+        // No-format blocks
+        .replace(/\{noformat\}([\s\S]*?)\{noformat\}/g, (_, text) => text.trim())
+        // Panels
+        .replace(/\{panel(?::[^}]*)?\}([\s\S]*?)\{panel\}/g, (_, text) => text.trim())
+        // Bold: *text*
+        .replace(/\*([^*\n]+)\*/g, '$1')
+        // Italic: _text_
+        .replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '$1')
+        // Monospace: {{text}}
+        .replace(/\{\{([^}]+)\}\}/g, '$1')
+        // Links: [text|url] or [url]
+        .replace(/\[([^|[\]]+)\|([^\]]+)\]/g, '$1')
+        .replace(/\[([^\]]+)\]/g, '$1')
+        // Color/quote macros
+        .replace(/\{color[^}]*\}/g, '')
+        .replace(/\{quote\}/g, '')
+        // Bullet/number lists: leading * or # or -
+        .replace(/^[*#\-]+\s*/gm, '• ')
+        // Collapse multiple blank lines
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      return clean.length > 500 ? clean.substring(0, 500) + '...' : clean;
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A';
