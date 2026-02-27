@@ -2,26 +2,13 @@
   <div class="px-8 py-8">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Bug List</h2>
 
-    <!-- Search and Filter bar -->
-    <div class="flex items-center gap-4 mb-4">
-      <div class="relative flex-shrink-0 w-72">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by issue key or summary..."
-          class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        />
-        <svg class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-      <FilterBar
-        :priorities="availablePriorities"
-        :teams="availableTeams"
-        @filter-change="handleFilterChange"
-        class="flex-1"
-      />
-    </div>
+    <FilterBar
+      :priorities="availablePriorities"
+      :teams="availableTeams"
+      :searchQuery="searchQuery"
+      @filter-change="handleFilterChange"
+      @search-change="handleSearchChange"
+    />
 
     <!-- Loading state -->
     <div v-if="isLoading" class="text-center py-12">
@@ -200,6 +187,9 @@ export default {
   methods: {
     handleFilterChange(filters) {
       this.filters = filters;
+    },
+    handleSearchChange(query) {
+      this.searchQuery = query;
     },
     toggleExpanded(bugKey) {
       this.expandedBugKey = this.expandedBugKey === bugKey ? null : bugKey;
