@@ -160,6 +160,7 @@
         <DashboardView
           v-if="currentView === 'dashboard'"
           :summary="summary"
+          :bugs="bugs"
           :isLoading="isLoading"
         />
         <BugListView

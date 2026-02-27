@@ -131,6 +131,9 @@
         </div>
       </div>
 
+      <!-- Bug age chart -->
+      <BugAgeChart :bugs="bugs" />
+
       <!-- Version and Team side by side -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Version breakdown -->
@@ -189,12 +192,19 @@
 </template>
 
 <script>
+import BugAgeChart from './BugAgeChart.vue'
+
 export default {
   name: 'DashboardView',
+  components: { BugAgeChart },
   props: {
     summary: {
       type: Object,
       default: null
+    },
+    bugs: {
+      type: Array,
+      default: () => []
     },
     isLoading: {
       type: Boolean,
