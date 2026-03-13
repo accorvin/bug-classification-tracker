@@ -5,6 +5,15 @@ export default defineConfig({
   plugins: [
     vue()
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'chart-vendor': ['chart.js', 'vue-chartjs']
+        }
+      }
+    }
+  },
   server: {
     proxy: {
       '/api': {

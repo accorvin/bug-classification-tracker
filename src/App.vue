@@ -139,6 +139,17 @@
             >
               Bug List
             </button>
+            <button
+              @click="currentView = 'snapshots'"
+              :class="[
+                'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                currentView === 'snapshots'
+                  ? 'border-primary-700 text-primary-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ]"
+            >
+              Snapshots
+            </button>
           </div>
         </div>
       </nav>
@@ -172,6 +183,9 @@
           :bugs="bugs"
           :isLoading="isLoading"
         />
+        <SnapshotView
+          v-else-if="currentView === 'snapshots'"
+        />
       </main>
 
       <!-- Toasts -->
@@ -191,6 +205,7 @@
 import AuthGuard from './components/AuthGuard.vue';
 import DashboardView from './components/DashboardView.vue';
 import BugListView from './components/BugListView.vue';
+import SnapshotView from './components/SnapshotView.vue';
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import Toast from './components/Toast.vue';
 import { useAuth } from './composables/useAuth';
@@ -202,6 +217,7 @@ export default {
     AuthGuard,
     DashboardView,
     BugListView,
+    SnapshotView,
     LoadingOverlay,
     Toast
   },

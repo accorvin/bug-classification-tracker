@@ -81,6 +81,32 @@ app.get('/api/summary', async function (req, res) {
   res.json(data);
 });
 
+// Snapshot routes
+
+const SNAPSHOT_ID_PATTERN = /^\d{4}-\d{2}$/;
+
+app.get('/api/snapshots', async function (req, res) {
+  const projectKey = req.query.project || 'RHOAIENG';
+  const data = await readFromStorage(`${projectKey}/snapshots/index.json`);
+  res.json(data || { snapshots: [] });
+});
+
+app.get('/api/snapshots/:id', async function (req, res) {
+  const projectKey = req.query.project || 'RHOAIENG';
+  const id = req.params.id;
+
+  if (!SNAPSHOT_ID_PATTERN.test(id)) {
+    return res.status(400).json({ error: 'Invalid snapshot ID. Expected format: YYYY-MM' });
+  }
+
+  const data = await readFromStorage(`${projectKey}/snapshots/${id}.json`);
+  if (!data) {
+    return res.status(404).json({ error: `Snapshot ${id} not found` });
+  }
+
+  res.json(data);
+});
+
 app.get('/api/refresh', function (req, res) {
   res.status(403).json({ error: 'Refresh disabled — use the local refresh script (npm run refresh)' });
 });
