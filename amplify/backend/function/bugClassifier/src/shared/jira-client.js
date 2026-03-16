@@ -10,10 +10,25 @@ export const JIRA_API_BASE = `${JIRA_HOST}/rest/api/2`;
  * Fetch bugs from Jira for a given project
  * @param {string} projectKey - Jira project key (e.g., 'RHOAIENG')
  * @param {string} jiraToken - Jira personal access token
+ * @param {Object} [options] - Optional parameters
+ * @param {boolean} [options.includeResolved=false] - Also fetch bugs resolved in the last 60 days
+ * @param {string} [options.asOfDate] - For backfill: date string (YYYY-MM-DD) to approximate point-in-time state
  * @returns {Promise<Array>} - Array of bug objects
  */
-export async function fetchBugs(projectKey, jiraToken) {
-  const jql = `project = ${projectKey} AND type = Bug AND resolution = Unresolved ORDER BY updated DESC`;
+export async function fetchBugs(projectKey, jiraToken, options = {}) {
+  const { includeResolved = false, asOfDate = null } = options;
+
+  let jql;
+  if (asOfDate) {
+    // Backfill mode: bugs that existed before asOfDate and were either still open or resolved after that date
+    jql = `project = ${projectKey} AND type = Bug AND created <= "${asOfDate}" AND (resolution = Unresolved OR resolved >= "${asOfDate}") ORDER BY updated DESC`;
+  } else if (includeResolved) {
+    // Include recently resolved bugs alongside unresolved
+    jql = `project = ${projectKey} AND type = Bug AND (resolution = Unresolved OR (resolution != Unresolved AND resolved >= "-60d")) ORDER BY updated DESC`;
+  } else {
+    jql = `project = ${projectKey} AND type = Bug AND resolution = Unresolved ORDER BY updated DESC`;
+  }
+
   const fields = [
     'summary',
     'description',
@@ -26,6 +41,7 @@ export async function fetchBugs(projectKey, jiraToken) {
     'created',
     'updated',
     'resolution',
+    'resolutiondate',
     'fixVersions',
     'versions' // Affects Version
   ].join(',');
@@ -75,6 +91,8 @@ export async function fetchBugs(projectKey, jiraToken) {
 function transformJiraIssue(jiraIssue) {
   const fields = jiraIssue.fields;
 
+  const resolution = fields.resolution?.name || null;
+
   return {
     key: jiraIssue.key,
     summary: fields.summary || '',
@@ -88,7 +106,9 @@ function transformJiraIssue(jiraIssue) {
     reporter: fields.reporter?.displayName || null,
     created: fields.created || null,
     updated: fields.updated || null,
-    resolution: fields.resolution?.name || null,
+    resolution,
+    resolved: fields.resolutiondate || null,
+    isResolved: resolution != null,
     fixVersions: (fields.fixVersions || []).map(v => v.name),
     affectsVersions: (fields.versions || []).map(v => v.name),
     team: extractTeam(fields)

@@ -187,6 +187,68 @@ export async function getBug(bugKey, projectKey = 'RHOAIENG') {
 }
 
 /**
+ * Get list of available snapshots
+ * @param {string} projectKey - Project key
+ * @returns {Promise<Object>} - { snapshots: [{ id, generatedAt, totalBugs }] }
+ */
+export async function getSnapshots(projectKey = 'RHOAIENG') {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(`${API_ENDPOINT}/snapshots?project=${projectKey}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Get snapshots error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get a single snapshot by ID
+ * @param {string} snapshotId - Snapshot ID (e.g., "2026-03")
+ * @param {string} projectKey - Project key
+ * @returns {Promise<Object>} - Snapshot document
+ */
+export async function getSnapshot(snapshotId, projectKey = 'RHOAIENG') {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(`${API_ENDPOINT}/snapshots/${snapshotId}?project=${projectKey}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      if (response.status === 404) {
+        throw new Error(`Snapshot ${snapshotId} not found`);
+      }
+
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Get snapshot error:', error);
+    throw error;
+  }
+}
+
+/**
  * Get summary statistics
  * @param {string} projectKey - Project key
  * @returns {Promise<Object>} - Summary object
