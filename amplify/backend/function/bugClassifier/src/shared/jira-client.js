@@ -1,22 +1,59 @@
 /**
  * Jira Client
- * Handles fetching bugs from Jira (read-only)
+ * Handles fetching bugs from Jira Cloud (read-only)
  */
 
-export const JIRA_HOST = 'https://issues.redhat.com';
-export const JIRA_API_BASE = `${JIRA_HOST}/rest/api/2`;
+export const JIRA_HOST = 'https://redhat.atlassian.net';
+export const JIRA_API_BASE = `${JIRA_HOST}/rest/api/3`;
+
+/**
+ * Convert ADF (Atlassian Document Format) to plain text
+ * @param {Object|string|null} adf - ADF document object or plain string
+ * @returns {string} - Plain text representation
+ */
+function adfToPlainText(adf) {
+  if (!adf) return '';
+  if (typeof adf === 'string') return adf;
+  if (typeof adf !== 'object') return '';
+
+  let text = '';
+  if (adf.text) {
+    text += adf.text;
+  }
+  if (adf.content && Array.isArray(adf.content)) {
+    const childTexts = adf.content.map(adfToPlainText);
+    text += childTexts.join('');
+  }
+  // Add newlines after block-level elements
+  if (['paragraph', 'heading', 'listItem', 'blockquote'].includes(adf.type)) {
+    text += '\n';
+  }
+  return text;
+}
+
+/**
+ * Build Basic Auth header value for Jira Cloud
+ * @param {string} email - Jira account email
+ * @param {string} apiToken - Jira API token
+ * @returns {string} - Base64-encoded auth string
+ */
+function buildBasicAuth(email, apiToken) {
+  const credentials = `${email}:${apiToken}`;
+  return `Basic ${Buffer.from(credentials).toString('base64')}`;
+}
 
 /**
  * Fetch bugs from Jira for a given project
  * @param {string} projectKey - Jira project key (e.g., 'RHOAIENG')
- * @param {string} jiraToken - Jira personal access token
+ * @param {string} jiraToken - Jira API token
  * @param {Object} [options] - Optional parameters
+ * @param {string} [options.jiraEmail] - Jira account email for Basic Auth
  * @param {boolean} [options.includeResolved=false] - Also fetch bugs resolved in the last 60 days
  * @param {string} [options.asOfDate] - For backfill: date string (YYYY-MM-DD) to approximate point-in-time state
  * @returns {Promise<Array>} - Array of bug objects
  */
 export async function fetchBugs(projectKey, jiraToken, options = {}) {
-  const { includeResolved = false, asOfDate = null } = options;
+  const { includeResolved = false, asOfDate = null, jiraEmail = null } = options;
 
   let jql;
   if (asOfDate) {
@@ -44,20 +81,35 @@ export async function fetchBugs(projectKey, jiraToken, options = {}) {
     'resolutiondate',
     'fixVersions',
     'versions', // Affects Version
-  ].join(',');
+    'customfield_10840', // Severity
+  ];
 
-  let startAt = 0;
   const maxResults = 100;
   const allBugs = [];
+  let nextPageToken = null;
+
+  const authHeader = jiraEmail
+    ? buildBasicAuth(jiraEmail, jiraToken)
+    : `Basic ${Buffer.from(jiraToken).toString('base64')}`;
 
   while (true) {
-    const url = `${JIRA_API_BASE}/search?jql=${encodeURIComponent(jql)}&fields=${fields}&startAt=${startAt}&maxResults=${maxResults}`;
+    const body = {
+      jql,
+      fields,
+      maxResults,
+    };
+    if (nextPageToken) {
+      body.nextPageToken = nextPageToken;
+    }
 
-    const response = await fetch(url, {
+    const response = await fetch(`${JIRA_API_BASE}/search/jql`, {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${jiraToken}`,
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -73,11 +125,11 @@ export async function fetchBugs(projectKey, jiraToken, options = {}) {
 
     allBugs.push(...data.issues);
 
-    if (data.issues.length < maxResults) {
+    if (data.isLast !== false) {
       break;
     }
 
-    startAt += maxResults;
+    nextPageToken = data.nextPageToken;
   }
 
   return allBugs.map(transformJiraIssue);
@@ -96,7 +148,7 @@ function transformJiraIssue(jiraIssue) {
   return {
     key: jiraIssue.key,
     summary: fields.summary || '',
-    description: fields.description || '',
+    description: adfToPlainText(fields.description),
     status: fields.status?.name || 'Unknown',
     priority: fields.priority?.name || 'Unknown',
     severity: extractSeverity(fields),
@@ -121,10 +173,9 @@ function transformJiraIssue(jiraIssue) {
  * @returns {string}
  */
 function extractSeverity(fields) {
-  // Check if there's a severity custom field (adjust field ID as needed)
-  // This is a placeholder - adjust based on actual Jira configuration
-  if (fields.customfield_12316142?.value) {
-    return fields.customfield_12316142.value;
+  // Jira Cloud severity custom field
+  if (fields.customfield_10840?.value) {
+    return fields.customfield_10840.value;
   }
 
   // Check labels for severity

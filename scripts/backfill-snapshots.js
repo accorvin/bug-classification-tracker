@@ -31,6 +31,7 @@ const fromMonth = getArg('--from');
 const toMonth = getArg('--to');
 
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
+const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const S3_BUCKET = process.env.BUG_DATA_S3_BUCKET;
 
 function getArg(flag) {
@@ -42,6 +43,10 @@ function getArg(flag) {
 // Validation
 if (!JIRA_TOKEN) {
   console.error('ERROR: JIRA_TOKEN environment variable is not set');
+  process.exit(1);
+}
+if (!JIRA_EMAIL) {
+  console.error('ERROR: JIRA_EMAIL environment variable is not set');
   process.exit(1);
 }
 if (!S3_BUCKET) {
@@ -155,7 +160,7 @@ async function main() {
     );
 
     try {
-      const bugs = await fetchBugs(projectKey, JIRA_TOKEN, { asOfDate });
+      const bugs = await fetchBugs(projectKey, JIRA_TOKEN, { asOfDate, jiraEmail: JIRA_EMAIL });
       const openBugs = bugs.filter((b) => !b.isResolved);
       const resolvedBugs = bugs.filter((b) => b.isResolved);
       console.log(`  Fetched ${openBugs.length} open + ${resolvedBugs.length} resolved bugs`);
