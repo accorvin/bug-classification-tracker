@@ -1,5 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { classifyWithRules, buildSummary, needsReclassification, CATEGORIES } from '../classification.js';
+import { describe, it, expect } from 'vitest';
+import {
+  classifyWithRules,
+  buildSummary,
+  needsReclassification,
+  CATEGORIES,
+} from '../classification.js';
 
 describe('classifyWithRules', () => {
   it('should classify as regression when label contains "regression"', () => {
@@ -8,7 +13,7 @@ describe('classifyWithRules', () => {
       description: 'Test description',
       labels: ['bug', 'Regression'],
       component: 'API',
-      team: 'Backend'
+      team: 'Backend',
     };
 
     const result = classifyWithRules(bug);
@@ -23,7 +28,7 @@ describe('classifyWithRules', () => {
       summary: 'This is a regression in the login flow',
       description: 'Test description',
       labels: [],
-      component: 'API'
+      component: 'API',
     };
 
     const result = classifyWithRules(bug);
@@ -37,7 +42,7 @@ describe('classifyWithRules', () => {
       summary: 'Test bug',
       description: 'Test description',
       labels: ['bug', 'usability'],
-      component: 'API'
+      component: 'API',
     };
 
     const result = classifyWithRules(bug);
@@ -51,7 +56,7 @@ describe('classifyWithRules', () => {
       summary: 'Test bug',
       description: 'Test description',
       labels: [],
-      component: 'UXD'
+      component: 'UXD',
     };
 
     const result = classifyWithRules(bug);
@@ -65,7 +70,7 @@ describe('classifyWithRules', () => {
       summary: 'Some random bug',
       description: 'Some description',
       labels: [],
-      component: 'API'
+      component: 'API',
     };
 
     const result = classifyWithRules(bug);
@@ -79,7 +84,7 @@ describe('buildSummary', () => {
       { classification: 'regression', priority: 'High', team: 'Team A', severity: 'Urgent' },
       { classification: 'regression', priority: 'Medium', team: 'Team A', severity: 'High' },
       { classification: 'usability', priority: 'High', team: 'Team B', severity: 'Medium' },
-      { classification: 'general-engineering', priority: 'Low', team: 'Team B', severity: 'Low' }
+      { classification: 'general-engineering', priority: 'Low', team: 'Team B', severity: 'Low' },
     ];
 
     const summary = buildSummary(bugs);
@@ -104,12 +109,12 @@ describe('needsReclassification', () => {
   it('should return true when bug was updated after classification', () => {
     const bug = {
       key: 'BUG-1',
-      updated: '2026-02-26T12:00:00Z'
+      updated: '2026-02-26T12:00:00Z',
     };
 
     const classifiedBug = {
       key: 'BUG-1',
-      classifiedAt: '2026-02-26T10:00:00Z'
+      classifiedAt: '2026-02-26T10:00:00Z',
     };
 
     expect(needsReclassification(bug, classifiedBug)).toBe(true);
@@ -118,12 +123,12 @@ describe('needsReclassification', () => {
   it('should return false when bug was not updated after classification', () => {
     const bug = {
       key: 'BUG-1',
-      updated: '2026-02-26T10:00:00Z'
+      updated: '2026-02-26T10:00:00Z',
     };
 
     const classifiedBug = {
       key: 'BUG-1',
-      classifiedAt: '2026-02-26T12:00:00Z'
+      classifiedAt: '2026-02-26T12:00:00Z',
     };
 
     expect(needsReclassification(bug, classifiedBug)).toBe(false);
@@ -132,7 +137,7 @@ describe('needsReclassification', () => {
   it('should return true when no previous classification exists', () => {
     const bug = {
       key: 'BUG-1',
-      updated: '2026-02-26T12:00:00Z'
+      updated: '2026-02-26T12:00:00Z',
     };
 
     expect(needsReclassification(bug, null)).toBe(true);

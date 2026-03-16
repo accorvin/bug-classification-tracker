@@ -22,8 +22,12 @@ beforeEach(() => {
   vi.spyOn(document, 'createElement').mockImplementation(() => {
     const el = { click: vi.fn() };
     Object.defineProperty(el, 'download', {
-      set(val) { if (lastDownload) lastDownload.filename = val; },
-      get() { return lastDownload?.filename; }
+      set(val) {
+        if (lastDownload) lastDownload.filename = val;
+      },
+      get() {
+        return lastDownload?.filename;
+      },
     });
     return el;
   });
@@ -41,9 +45,20 @@ describe('CSV escaping', () => {
       snapshotId: '2026-01',
       releases: {
         'rhoai-2.18': {
-          bugs: [{ key: 'BUG-1', summary: 'Fix foo, bar issue', classification: 'regression', priority: 'Major', status: 'New', team: 'TeamA', created: '2026-01-01', updated: '2026-01-02' }]
-        }
-      }
+          bugs: [
+            {
+              key: 'BUG-1',
+              summary: 'Fix foo, bar issue',
+              classification: 'regression',
+              priority: 'Major',
+              status: 'New',
+              team: 'TeamA',
+              created: '2026-01-01',
+              updated: '2026-01-02',
+            },
+          ],
+        },
+      },
     });
 
     const dataRow = csvLines()[1];
@@ -55,9 +70,20 @@ describe('CSV escaping', () => {
       snapshotId: '2026-01',
       releases: {
         'rhoai-2.18': {
-          bugs: [{ key: 'BUG-2', summary: 'Error in "parse" function', classification: 'usability', priority: 'Minor', status: 'New', team: 'TeamB', created: '2026-01-01', updated: '2026-01-02' }]
-        }
-      }
+          bugs: [
+            {
+              key: 'BUG-2',
+              summary: 'Error in "parse" function',
+              classification: 'usability',
+              priority: 'Minor',
+              status: 'New',
+              team: 'TeamB',
+              created: '2026-01-01',
+              updated: '2026-01-02',
+            },
+          ],
+        },
+      },
     });
 
     const dataRow = csvLines()[1];
@@ -69,9 +95,20 @@ describe('CSV escaping', () => {
       snapshotId: '2026-01',
       releases: {
         'rhoai-2.18': {
-          bugs: [{ key: 'BUG-3', summary: 'Line1\nLine2', classification: 'regression', priority: 'Critical', status: 'New', team: 'TeamC', created: '2026-01-01', updated: '2026-01-02' }]
-        }
-      }
+          bugs: [
+            {
+              key: 'BUG-3',
+              summary: 'Line1\nLine2',
+              classification: 'regression',
+              priority: 'Critical',
+              status: 'New',
+              team: 'TeamC',
+              created: '2026-01-01',
+              updated: '2026-01-02',
+            },
+          ],
+        },
+      },
     });
 
     // The escaped value should be quoted, so the raw content will contain the literal newline inside quotes
@@ -83,9 +120,20 @@ describe('CSV escaping', () => {
       snapshotId: '2026-01',
       releases: {
         'rhoai-2.18': {
-          bugs: [{ key: 'BUG-4', summary: null, classification: undefined, priority: 'Major', status: 'New', team: 'TeamD', created: '2026-01-01', updated: '2026-01-02' }]
-        }
-      }
+          bugs: [
+            {
+              key: 'BUG-4',
+              summary: null,
+              classification: undefined,
+              priority: 'Major',
+              status: 'New',
+              team: 'TeamD',
+              created: '2026-01-01',
+              updated: '2026-01-02',
+            },
+          ],
+        },
+      },
     });
 
     const dataRow = csvLines()[1];
@@ -98,13 +146,26 @@ describe('CSV escaping', () => {
       snapshotId: '2026-01',
       releases: {
         'rhoai-2.18': {
-          bugs: [{ key: 'BUG-5', summary: 'Simple summary', classification: 'regression', priority: 'Major', status: 'New', team: 'TeamE', created: '2026-01-01', updated: '2026-01-02' }]
-        }
-      }
+          bugs: [
+            {
+              key: 'BUG-5',
+              summary: 'Simple summary',
+              classification: 'regression',
+              priority: 'Major',
+              status: 'New',
+              team: 'TeamE',
+              created: '2026-01-01',
+              updated: '2026-01-02',
+            },
+          ],
+        },
+      },
     });
 
     const dataRow = csvLines()[1];
-    expect(dataRow).toBe('BUG-5,Simple summary,regression,Major,New,TeamE,rhoai-2.18,2026-01-01,2026-01-02');
+    expect(dataRow).toBe(
+      'BUG-5,Simple summary,regression,Major,New,TeamE,rhoai-2.18,2026-01-01,2026-01-02',
+    );
   });
 });
 
@@ -114,7 +175,9 @@ describe('exportSnapshotCsv', () => {
   it('should produce correct headers', () => {
     exportSnapshotCsv({ snapshotId: '2026-01', releases: {} });
 
-    expect(csvLines()[0]).toBe('Key,Summary,Classification,Priority,Status,Team,Affected Release,Created,Updated');
+    expect(csvLines()[0]).toBe(
+      'Key,Summary,Classification,Priority,Status,Team,Affected Release,Created,Updated',
+    );
   });
 
   it('should produce one row per bug-release pair', () => {
@@ -123,16 +186,43 @@ describe('exportSnapshotCsv', () => {
       releases: {
         'rhoai-2.18': {
           bugs: [
-            { key: 'A', summary: 's1', classification: 'regression', priority: 'Major', status: 'New', team: 'T1', created: 'c1', updated: 'u1' },
-            { key: 'B', summary: 's2', classification: 'usability', priority: 'Minor', status: 'Open', team: 'T2', created: 'c2', updated: 'u2' }
-          ]
+            {
+              key: 'A',
+              summary: 's1',
+              classification: 'regression',
+              priority: 'Major',
+              status: 'New',
+              team: 'T1',
+              created: 'c1',
+              updated: 'u1',
+            },
+            {
+              key: 'B',
+              summary: 's2',
+              classification: 'usability',
+              priority: 'Minor',
+              status: 'Open',
+              team: 'T2',
+              created: 'c2',
+              updated: 'u2',
+            },
+          ],
         },
         'rhoai-2.19': {
           bugs: [
-            { key: 'C', summary: 's3', classification: 'regression', priority: 'Critical', status: 'New', team: 'T3', created: 'c3', updated: 'u3' }
-          ]
-        }
-      }
+            {
+              key: 'C',
+              summary: 's3',
+              classification: 'regression',
+              priority: 'Critical',
+              status: 'New',
+              team: 'T3',
+              created: 'c3',
+              updated: 'u3',
+            },
+          ],
+        },
+      },
     });
 
     const lines = csvLines();
@@ -146,8 +236,8 @@ describe('exportSnapshotCsv', () => {
     exportSnapshotCsv({
       snapshotId: '2026-01',
       releases: {
-        'rhoai-2.18': { totalBugs: 0 }
-      }
+        'rhoai-2.18': { totalBugs: 0 },
+      },
     });
 
     const lines = csvLines();
@@ -170,8 +260,8 @@ describe('exportComparisonCsv', () => {
       totalBugsDelta: 12,
       byClassification: {
         regression: { from: 20, to: 25, delta: 5 },
-        usability: { from: 30, to: 28, delta: -2 }
-      }
+        usability: { from: 30, to: 28, delta: -2 },
+      },
     },
     releases: {
       'rhoai-2.18': {
@@ -181,10 +271,10 @@ describe('exportComparisonCsv', () => {
         inflow: 6,
         outflow: 2,
         byClassification: {
-          regression: { from: 5, to: 8, delta: 3 }
-        }
-      }
-    }
+          regression: { from: 5, to: 8, delta: 3 },
+        },
+      },
+    },
   };
 
   it('should produce correct headers', () => {
@@ -204,8 +294,8 @@ describe('exportComparisonCsv', () => {
   it('should include inflow and outflow rows per release', () => {
     exportComparisonCsv(comparison);
     const lines = csvLines();
-    const inflowRow = lines.find(l => l.includes('rhoai-2.18') && l.includes('Inflow'));
-    const outflowRow = lines.find(l => l.includes('rhoai-2.18') && l.includes('Outflow'));
+    const inflowRow = lines.find((l) => l.includes('rhoai-2.18') && l.includes('Inflow'));
+    const outflowRow = lines.find((l) => l.includes('rhoai-2.18') && l.includes('Outflow'));
     expect(inflowRow).toContain(',6');
     expect(outflowRow).toContain(',2');
   });
@@ -223,24 +313,42 @@ describe('exportTrendsCsv', () => {
     {
       snapshotId: '2026-01',
       releases: {
-        'rhoai-2.18': { totalBugs: 10, byClassification: { regression: 3, usability: 4, 'general-engineering': 2, uncategorized: 1 } }
-      }
+        'rhoai-2.18': {
+          totalBugs: 10,
+          byClassification: {
+            regression: 3,
+            usability: 4,
+            'general-engineering': 2,
+            uncategorized: 1,
+          },
+        },
+      },
     },
     {
       snapshotId: '2026-02',
       releases: {
-        'rhoai-2.18': { totalBugs: 14, byClassification: { regression: 5, usability: 4, 'general-engineering': 3, uncategorized: 2 } }
-      }
-    }
+        'rhoai-2.18': {
+          totalBugs: 14,
+          byClassification: {
+            regression: 5,
+            usability: 4,
+            'general-engineering': 3,
+            uncategorized: 2,
+          },
+        },
+      },
+    },
   ];
 
   const velocityData = [
-    { snapshotId: '2026-02', label: 'Feb 26', inflow: 6, outflow: 2, netChange: 4 }
+    { snapshotId: '2026-02', label: 'Feb 26', inflow: 6, outflow: 2, netChange: 4 },
   ];
 
   it('should produce correct headers', () => {
     exportTrendsCsv(snapshots, velocityData);
-    expect(csvLines()[0]).toBe('Month,Release,Total Bugs,Regressions,Usability,General Engineering,Uncategorized,Inflow,Outflow,Net Change');
+    expect(csvLines()[0]).toBe(
+      'Month,Release,Total Bugs,Regressions,Usability,General Engineering,Uncategorized,Inflow,Outflow,Net Change',
+    );
   });
 
   it('should produce one row per month-release pair', () => {
@@ -253,7 +361,7 @@ describe('exportTrendsCsv', () => {
     exportTrendsCsv(snapshots, velocityData);
     const lines = csvLines();
     // Feb 2026 row should have velocity
-    const febRow = lines.find(l => l.startsWith('2026-02'));
+    const febRow = lines.find((l) => l.startsWith('2026-02'));
     expect(febRow).toContain(',6,2,4');
   });
 
@@ -261,17 +369,19 @@ describe('exportTrendsCsv', () => {
     exportTrendsCsv(snapshots, velocityData);
     const lines = csvLines();
     // Jan 2026 row has no velocity data
-    const janRow = lines.find(l => l.startsWith('2026-01'));
+    const janRow = lines.find((l) => l.startsWith('2026-01'));
     expect(janRow).toMatch(/,,,$/);
   });
 
   it('should default missing classification counts to 0', () => {
-    const sparse = [{
-      snapshotId: '2026-01',
-      releases: {
-        'rhoai-2.18': { totalBugs: 5, byClassification: { regression: 5 } }
-      }
-    }];
+    const sparse = [
+      {
+        snapshotId: '2026-01',
+        releases: {
+          'rhoai-2.18': { totalBugs: 5, byClassification: { regression: 5 } },
+        },
+      },
+    ];
     exportTrendsCsv(sparse, []);
     const dataRow = csvLines()[1];
     // regression=5, usability=0, general-engineering=0, uncategorized=0

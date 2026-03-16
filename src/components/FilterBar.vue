@@ -12,8 +12,19 @@
             placeholder="Key or summary..."
             class="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           />
-          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </div>
       </div>
@@ -83,16 +94,16 @@ export default {
   props: {
     priorities: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     teams: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     searchQuery: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
   emits: ['filter-change', 'search-change'],
   data() {
@@ -102,9 +113,9 @@ export default {
         priority: '',
         team: '',
         dateFrom: '',
-        dateTo: ''
-      }
-    }
+        dateTo: '',
+      },
+    };
   },
   methods: {
     emitChange() {
@@ -116,11 +127,11 @@ export default {
         priority: '',
         team: '',
         dateFrom: '',
-        dateTo: ''
+        dateTo: '',
       };
       this.emitChange();
       this.$emit('search-change', '');
-    }
-  }
-}
+    },
+  },
+};
 </script>

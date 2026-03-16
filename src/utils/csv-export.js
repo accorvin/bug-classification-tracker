@@ -35,11 +35,21 @@ function download(content, filename) {
  * @param {Object} snapshot - Snapshot document
  */
 export function exportSnapshotCsv(snapshot) {
-  const headers = ['Key', 'Summary', 'Classification', 'Priority', 'Status', 'Team', 'Affected Release', 'Created', 'Updated'];
+  const headers = [
+    'Key',
+    'Summary',
+    'Classification',
+    'Priority',
+    'Status',
+    'Team',
+    'Affected Release',
+    'Created',
+    'Updated',
+  ];
   const rows = [];
 
   for (const [release, group] of Object.entries(snapshot.releases || {})) {
-    for (const bug of (group.bugs || [])) {
+    for (const bug of group.bugs || []) {
       rows.push([
         bug.key,
         bug.summary,
@@ -49,7 +59,7 @@ export function exportSnapshotCsv(snapshot) {
         bug.team,
         release,
         bug.created,
-        bug.updated
+        bug.updated,
       ]);
     }
   }
@@ -66,7 +76,13 @@ export function exportComparisonCsv(comparison) {
   const rows = [];
 
   // Global row
-  rows.push(['(Global)', 'Total Bugs', comparison.global.totalBugsDelta >= 0 ? '' : '', '', comparison.global.totalBugsDelta]);
+  rows.push([
+    '(Global)',
+    'Total Bugs',
+    comparison.global.totalBugsDelta >= 0 ? '' : '',
+    '',
+    comparison.global.totalBugsDelta,
+  ]);
 
   for (const [cat, data] of Object.entries(comparison.global.byClassification || {})) {
     rows.push(['(Global)', cat, data.from, data.to, data.delta]);
@@ -91,7 +107,18 @@ export function exportComparisonCsv(comparison) {
  * @param {Array} velocityData - Array of { label, inflow, outflow, netChange }
  */
 export function exportTrendsCsv(snapshots, velocityData) {
-  const headers = ['Month', 'Release', 'Total Bugs', 'Regressions', 'Usability', 'General Engineering', 'Uncategorized', 'Inflow', 'Outflow', 'Net Change'];
+  const headers = [
+    'Month',
+    'Release',
+    'Total Bugs',
+    'Regressions',
+    'Usability',
+    'General Engineering',
+    'Uncategorized',
+    'Inflow',
+    'Outflow',
+    'Net Change',
+  ];
   const rows = [];
 
   // Build velocity lookup keyed by snapshotId
@@ -113,7 +140,7 @@ export function exportTrendsCsv(snapshots, velocityData) {
         (group.byClassification || {}).uncategorized || 0,
         vel ? vel.inflow : '',
         vel ? vel.outflow : '',
-        vel ? vel.netChange : ''
+        vel ? vel.netChange : '',
       ]);
     }
   }
@@ -122,4 +149,3 @@ export function exportTrendsCsv(snapshots, velocityData) {
   const last = snapshots[snapshots.length - 1]?.snapshotId || 'unknown';
   download(toCsv(headers, rows), `trends-${first}-to-${last}.csv`);
 }
-

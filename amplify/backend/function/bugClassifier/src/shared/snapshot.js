@@ -35,8 +35,10 @@ export function rollupVersion(versionString) {
   const parts = rolledUp.replace('rhoai-', '').split('.').map(Number);
   const [major, minor] = parts;
 
-  if (major < MIN_TRACKED_VERSION[0] ||
-      (major === MIN_TRACKED_VERSION[0] && minor < MIN_TRACKED_VERSION[1])) {
+  if (
+    major < MIN_TRACKED_VERSION[0] ||
+    (major === MIN_TRACKED_VERSION[0] && minor < MIN_TRACKED_VERSION[1])
+  ) {
     return 'Pre-2.16';
   }
 
@@ -51,11 +53,12 @@ export function rollupVersion(versionString) {
  * @returns {string[]} - Array of resolved release names
  */
 export function resolveVersions(bug) {
-  const versions = (bug.affectsVersions && bug.affectsVersions.length > 0)
-    ? bug.affectsVersions
-    : (bug.fixVersions && bug.fixVersions.length > 0)
-      ? bug.fixVersions
-      : [];
+  const versions =
+    bug.affectsVersions && bug.affectsVersions.length > 0
+      ? bug.affectsVersions
+      : bug.fixVersions && bug.fixVersions.length > 0
+        ? bug.fixVersions
+        : [];
 
   if (versions.length === 0) {
     return ['Unversioned'];
@@ -86,7 +89,7 @@ function buildBugDetail(bug) {
     team: bug.team,
     summary: bug.summary,
     created: bug.created,
-    updated: bug.updated
+    updated: bug.updated,
   };
   if (bug.isResolved) {
     detail.isResolved = true;
@@ -129,7 +132,7 @@ function timeToResolveBucket(days) {
  * @returns {Object|null} - Velocity section, or null if no resolved bugs present
  */
 function computeVelocity(allBugs, openBugCount, snapshotId) {
-  const hasAnyResolved = allBugs.some(b => b.isResolved);
+  const hasAnyResolved = allBugs.some((b) => b.isResolved);
   if (!hasAnyResolved) return null;
 
   const { start, end } = snapshotPeriod(snapshotId);
@@ -156,14 +159,22 @@ function computeVelocity(allBugs, openBugCount, snapshotId) {
     }
   }
 
-  const buckets = { '< 1 week': 0, '1-2 weeks': 0, '2-4 weeks': 0, '1-3 months': 0, '3+ months': 0 };
+  const buckets = {
+    '< 1 week': 0,
+    '1-2 weeks': 0,
+    '2-4 weeks': 0,
+    '1-3 months': 0,
+    '3+ months': 0,
+  };
   for (const days of resolvedDurations) {
     buckets[timeToResolveBucket(days)]++;
   }
 
-  const avgTimeToResolveDays = resolvedDurations.length > 0
-    ? Math.round((resolvedDurations.reduce((a, b) => a + b, 0) / resolvedDurations.length) * 10) / 10
-    : null;
+  const avgTimeToResolveDays =
+    resolvedDurations.length > 0
+      ? Math.round((resolvedDurations.reduce((a, b) => a + b, 0) / resolvedDurations.length) * 10) /
+        10
+      : null;
 
   return {
     openBugs: openBugCount,
@@ -171,7 +182,7 @@ function computeVelocity(allBugs, openBugCount, snapshotId) {
     resolvedInPeriod,
     netChange: createdInPeriod - resolvedInPeriod,
     avgTimeToResolveDays,
-    timeToResolveBuckets: buckets
+    timeToResolveBuckets: buckets,
   };
 }
 
@@ -184,8 +195,8 @@ function computeVelocity(allBugs, openBugCount, snapshotId) {
  */
 export function buildSnapshot(classifiedBugs, projectKey, snapshotId) {
   // Separate open and resolved bugs
-  const openBugs = classifiedBugs.filter(b => !b.isResolved);
-  const resolvedBugs = classifiedBugs.filter(b => b.isResolved);
+  const openBugs = classifiedBugs.filter((b) => !b.isResolved);
+  const resolvedBugs = classifiedBugs.filter((b) => b.isResolved);
 
   const releases = {};
   let versionedCount = 0;
@@ -206,7 +217,7 @@ export function buildSnapshot(classifiedBugs, projectKey, snapshotId) {
         byStatus: {},
         byTeam: {},
         bugKeys: [],
-        bugs: []
+        bugs: [],
       };
       releaseEaCounts[release] = 0;
     }
@@ -214,11 +225,12 @@ export function buildSnapshot(classifiedBugs, projectKey, snapshotId) {
 
   // Helper to track EA versions for a bug
   function trackEa(bug, release) {
-    const sourceVersions = (bug.affectsVersions && bug.affectsVersions.length > 0)
-      ? bug.affectsVersions
-      : (bug.fixVersions && bug.fixVersions.length > 0)
-        ? bug.fixVersions
-        : [];
+    const sourceVersions =
+      bug.affectsVersions && bug.affectsVersions.length > 0
+        ? bug.affectsVersions
+        : bug.fixVersions && bug.fixVersions.length > 0
+          ? bug.fixVersions
+          : [];
     for (const v of sourceVersions) {
       const rolledUp = rollupVersion(v);
       if (rolledUp === release && isEaVersion(v)) {
@@ -287,7 +299,7 @@ export function buildSnapshot(classifiedBugs, projectKey, snapshotId) {
     byClassification: {},
     byPriority: {},
     byStatus: {},
-    byTeam: {}
+    byTeam: {},
   };
 
   for (const bug of openBugs) {
@@ -319,11 +331,12 @@ export function buildSnapshot(classifiedBugs, projectKey, snapshotId) {
     unversionedBugs: unversionedCount,
     dataQuality: {
       pctWithVersion: totalBugs > 0 ? Math.round((versionedCount / totalBugs) * 1000) / 10 : 0,
-      pctWithAffectsVersion: totalBugs > 0 ? Math.round((affectsVersionCount / totalBugs) * 1000) / 10 : 0,
-      pctWithFixVersion: totalBugs > 0 ? Math.round((fixVersionCount / totalBugs) * 1000) / 10 : 0
+      pctWithAffectsVersion:
+        totalBugs > 0 ? Math.round((affectsVersionCount / totalBugs) * 1000) / 10 : 0,
+      pctWithFixVersion: totalBugs > 0 ? Math.round((fixVersionCount / totalBugs) * 1000) / 10 : 0,
     },
     global,
-    releases
+    releases,
   };
 
   if (velocity) {

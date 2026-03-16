@@ -12,7 +12,7 @@ const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || '/api';
  * Get Firebase ID token for authentication
  */
 async function getAuthToken() {
-  const { getIdToken, loading, user } = useAuth();
+  const { getIdToken, loading } = useAuth();
 
   // Wait for auth initialization to complete
   if (loading.value) {
@@ -48,7 +48,7 @@ async function getAuthToken() {
 export async function getConfig(projectKey = 'RHOAIENG') {
   try {
     const response = await fetch(`${API_ENDPOINT}/config?project=${projectKey}`, {
-      method: 'GET'
+      method: 'GET',
     });
 
     if (!response.ok) {
@@ -71,7 +71,10 @@ export async function getConfig(projectKey = 'RHOAIENG') {
  * @param {Function} [options.onProgress] - Callback for progress events: (data) => void
  * @returns {Promise<Object>} - Resolves with the complete event data on success
  */
-export function refreshBugs(projectKey = 'RHOAIENG', { concurrency = 20, hardRefresh = false, onProgress } = {}) {
+export function refreshBugs(
+  projectKey = 'RHOAIENG',
+  { concurrency = 20, hardRefresh = false, onProgress } = {},
+) {
   return new Promise((resolve, reject) => {
     const params = new URLSearchParams({ project: projectKey, concurrency: String(concurrency) });
     if (hardRefresh) params.set('hard', '1');
@@ -92,7 +95,7 @@ export function refreshBugs(projectKey = 'RHOAIENG', { concurrency = 20, hardRef
       es.close();
       try {
         resolve(JSON.parse(e.data));
-      } catch (err) {
+      } catch {
         reject(new Error('Failed to parse complete event'));
       }
     });
@@ -123,8 +126,8 @@ export async function getBugs(params = {}) {
     const response = await fetch(`${API_ENDPOINT}/bugs?${queryParams}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -161,8 +164,8 @@ export async function getBug(bugKey, projectKey = 'RHOAIENG') {
     const response = await fetch(`${API_ENDPOINT}/bugs/${bugKey}?project=${projectKey}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -198,8 +201,8 @@ export async function getSnapshots(projectKey = 'RHOAIENG') {
     const response = await fetch(`${API_ENDPOINT}/snapshots?project=${projectKey}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -227,8 +230,8 @@ export async function getSnapshot(snapshotId, projectKey = 'RHOAIENG') {
     const response = await fetch(`${API_ENDPOINT}/snapshots/${snapshotId}?project=${projectKey}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -260,8 +263,8 @@ export async function getSummary(projectKey = 'RHOAIENG') {
     const response = await fetch(`${API_ENDPOINT}/summary?project=${projectKey}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {

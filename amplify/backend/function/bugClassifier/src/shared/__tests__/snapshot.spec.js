@@ -59,7 +59,7 @@ describe('resolveVersions', () => {
   it('should use affectsVersions as primary', () => {
     const bug = {
       affectsVersions: ['rhoai-3.3'],
-      fixVersions: ['rhoai-3.3.1']
+      fixVersions: ['rhoai-3.3.1'],
     };
     expect(resolveVersions(bug)).toEqual(['rhoai-3.3']);
   });
@@ -67,7 +67,7 @@ describe('resolveVersions', () => {
   it('should fall back to fixVersions when affectsVersions is empty', () => {
     const bug = {
       affectsVersions: [],
-      fixVersions: ['rhoai-3.3.1']
+      fixVersions: ['rhoai-3.3.1'],
     };
     expect(resolveVersions(bug)).toEqual(['rhoai-3.3']);
   });
@@ -85,7 +85,7 @@ describe('resolveVersions', () => {
   it('should return multiple releases for multi-version bugs', () => {
     const bug = {
       affectsVersions: ['rhoai-3.3', 'rhoai-3.4'],
-      fixVersions: []
+      fixVersions: [],
     };
     const result = resolveVersions(bug);
     expect(result).toContain('rhoai-3.3');
@@ -96,7 +96,7 @@ describe('resolveVersions', () => {
   it('should deduplicate when z-stream versions roll up to the same release', () => {
     const bug = {
       affectsVersions: ['rhoai-3.3', 'rhoai-3.3.1'],
-      fixVersions: []
+      fixVersions: [],
     };
     expect(resolveVersions(bug)).toEqual(['rhoai-3.3']);
   });
@@ -104,7 +104,7 @@ describe('resolveVersions', () => {
   it('should exclude non-rhoai versions and return Unversioned if none remain', () => {
     const bug = {
       affectsVersions: ['RHAIIS-1.1'],
-      fixVersions: []
+      fixVersions: [],
     };
     expect(resolveVersions(bug)).toEqual(['Unversioned']);
   });
@@ -112,7 +112,7 @@ describe('resolveVersions', () => {
   it('should exclude non-rhoai versions but keep valid rhoai versions', () => {
     const bug = {
       affectsVersions: ['RHAIIS-1.1', 'rhoai-3.4'],
-      fixVersions: []
+      fixVersions: [],
     };
     expect(resolveVersions(bug)).toEqual(['rhoai-3.4']);
   });
@@ -130,14 +130,14 @@ describe('buildSnapshot', () => {
     updated: '2026-02-20T14:00:00Z',
     affectsVersions: [],
     fixVersions: [],
-    ...overrides
+    ...overrides,
   });
 
   it('should build a valid snapshot document', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] }),
       makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.3'], classification: 'usability' }),
-      makeBug({ key: 'RHOAIENG-3' }) // unversioned
+      makeBug({ key: 'RHOAIENG-3' }), // unversioned
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -155,7 +155,7 @@ describe('buildSnapshot', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] }),
       makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], classification: 'usability' }),
-      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.3'] })
+      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.3'] }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -166,9 +166,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should count multi-version bugs in each release', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.3', 'rhoai-3.4'] })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.3', 'rhoai-3.4'] })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -178,10 +176,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should create Unversioned release group', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1' }),
-      makeBug({ key: 'RHOAIENG-2' })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1' }), makeBug({ key: 'RHOAIENG-2' })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -190,9 +185,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should create Pre-2.16 release group for old versions', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-2.10.2'] })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-2.10.2'] })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -204,7 +197,7 @@ describe('buildSnapshot', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4.EA1'] }),
       makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4.EA2'] }),
-      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.4'] })
+      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.4'] }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -214,9 +207,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should not include eaBugs field when there are no EA bugs', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.3'] })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.3'] })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -224,9 +215,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should exclude RHAIIS versions entirely', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['RHAIIS-1.1'] })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1', affectsVersions: ['RHAIIS-1.1'] })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -239,7 +228,7 @@ describe('buildSnapshot', () => {
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], fixVersions: ['rhoai-3.4.1'] }),
       makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.3'] }),
       makeBug({ key: 'RHOAIENG-3' }),
-      makeBug({ key: 'RHOAIENG-4', fixVersions: ['rhoai-3.4'] })
+      makeBug({ key: 'RHOAIENG-4', fixVersions: ['rhoai-3.4'] }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -251,7 +240,7 @@ describe('buildSnapshot', () => {
 
   it('should store per-bug details in release groups', () => {
     const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], summary: 'Test bug summary' })
+      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], summary: 'Test bug summary' }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -274,7 +263,7 @@ describe('buildSnapshot', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', classification: 'regression', priority: 'Critical' }),
       makeBug({ key: 'RHOAIENG-2', classification: 'regression', priority: 'Major' }),
-      makeBug({ key: 'RHOAIENG-3', classification: 'usability', priority: 'Major' })
+      makeBug({ key: 'RHOAIENG-3', classification: 'usability', priority: 'Major' }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -298,8 +287,20 @@ describe('buildSnapshot', () => {
   it('should not count resolved bugs in totalBugs or aggregates', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] }),
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], isResolved: true, resolved: '2026-03-15T10:00:00Z', resolution: 'Done' }),
-      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.4'], isResolved: true, resolved: '2026-03-20T10:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        isResolved: true,
+        resolved: '2026-03-15T10:00:00Z',
+        resolution: 'Done',
+      }),
+      makeBug({
+        key: 'RHOAIENG-3',
+        affectsVersions: ['rhoai-3.4'],
+        isResolved: true,
+        resolved: '2026-03-20T10:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -313,23 +314,47 @@ describe('buildSnapshot', () => {
   it('should include resolved bugs in the bugs array with isResolved flag', () => {
     const bugs = [
       makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] }),
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], isResolved: true, resolved: '2026-03-15T10:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        isResolved: true,
+        resolved: '2026-03-15T10:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
     const bugsArray = snapshot.releases['rhoai-3.4'].bugs;
     expect(bugsArray).toHaveLength(2);
-    expect(bugsArray.find(b => b.key === 'RHOAIENG-1').isResolved).toBeUndefined();
-    expect(bugsArray.find(b => b.key === 'RHOAIENG-2').isResolved).toBe(true);
-    expect(bugsArray.find(b => b.key === 'RHOAIENG-2').resolved).toBe('2026-03-15T10:00:00Z');
+    expect(bugsArray.find((b) => b.key === 'RHOAIENG-1').isResolved).toBeUndefined();
+    expect(bugsArray.find((b) => b.key === 'RHOAIENG-2').isResolved).toBe(true);
+    expect(bugsArray.find((b) => b.key === 'RHOAIENG-2').resolved).toBe('2026-03-15T10:00:00Z');
   });
 
   it('should compute velocity section when resolved bugs are present', () => {
     const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], created: '2026-03-05T10:00:00Z' }),
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], created: '2026-03-10T10:00:00Z', isResolved: true, resolved: '2026-03-20T10:00:00Z', resolution: 'Done' }),
-      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.4'], created: '2026-02-01T10:00:00Z', isResolved: true, resolved: '2026-03-12T10:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-1',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-05T10:00:00Z',
+      }),
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-10T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-20T10:00:00Z',
+        resolution: 'Done',
+      }),
+      makeBug({
+        key: 'RHOAIENG-3',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-02-01T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-12T10:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -341,9 +366,7 @@ describe('buildSnapshot', () => {
   });
 
   it('should not include velocity section when no resolved bugs exist', () => {
-    const bugs = [
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] })
-    ];
+    const bugs = [makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'] })];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
 
@@ -353,11 +376,32 @@ describe('buildSnapshot', () => {
   it('should compute time-to-resolve buckets', () => {
     const bugs = [
       // Resolved in 3 days (< 1 week)
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], created: '2026-03-01T10:00:00Z', isResolved: true, resolved: '2026-03-04T10:00:00Z', resolution: 'Done' }),
+      makeBug({
+        key: 'RHOAIENG-1',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-01T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-04T10:00:00Z',
+        resolution: 'Done',
+      }),
       // Resolved in 10 days (1-2 weeks)
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], created: '2026-03-01T10:00:00Z', isResolved: true, resolved: '2026-03-11T10:00:00Z', resolution: 'Done' }),
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-01T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-11T10:00:00Z',
+        resolution: 'Done',
+      }),
       // Resolved in 25 days (2-4 weeks)
-      makeBug({ key: 'RHOAIENG-3', affectsVersions: ['rhoai-3.4'], created: '2026-03-01T10:00:00Z', isResolved: true, resolved: '2026-03-26T10:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-3',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-01T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-26T10:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -372,9 +416,23 @@ describe('buildSnapshot', () => {
   it('should compute average time-to-resolve', () => {
     const bugs = [
       // 5 days
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], created: '2026-03-01T00:00:00Z', isResolved: true, resolved: '2026-03-06T00:00:00Z', resolution: 'Done' }),
+      makeBug({
+        key: 'RHOAIENG-1',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-01T00:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-06T00:00:00Z',
+        resolution: 'Done',
+      }),
       // 15 days
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], created: '2026-03-01T00:00:00Z', isResolved: true, resolved: '2026-03-16T00:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-01T00:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-16T00:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');
@@ -385,9 +443,23 @@ describe('buildSnapshot', () => {
   it('should only count bugs resolved within the snapshot period for velocity', () => {
     const bugs = [
       // Created in March, resolved in March — counts for both createdInPeriod and resolvedInPeriod
-      makeBug({ key: 'RHOAIENG-1', affectsVersions: ['rhoai-3.4'], created: '2026-03-05T10:00:00Z', isResolved: true, resolved: '2026-03-20T10:00:00Z', resolution: 'Done' }),
+      makeBug({
+        key: 'RHOAIENG-1',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-03-05T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-03-20T10:00:00Z',
+        resolution: 'Done',
+      }),
       // Created in Feb, resolved in Feb — does NOT count for March velocity
-      makeBug({ key: 'RHOAIENG-2', affectsVersions: ['rhoai-3.4'], created: '2026-02-01T10:00:00Z', isResolved: true, resolved: '2026-02-15T10:00:00Z', resolution: 'Done' })
+      makeBug({
+        key: 'RHOAIENG-2',
+        affectsVersions: ['rhoai-3.4'],
+        created: '2026-02-01T10:00:00Z',
+        isResolved: true,
+        resolved: '2026-02-15T10:00:00Z',
+        resolution: 'Done',
+      }),
     ];
 
     const snapshot = buildSnapshot(bugs, 'RHOAIENG', '2026-03');

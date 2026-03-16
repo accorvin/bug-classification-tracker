@@ -23,8 +23,8 @@ function diffCounts(fromObj, toObj) {
 function diffBugKeys(fromKeys, toKeys) {
   const fromSet = new Set(fromKeys || []);
   const toSet = new Set(toKeys || []);
-  const newBugKeys = [...toSet].filter(k => !fromSet.has(k));
-  const resolvedBugKeys = [...fromSet].filter(k => !toSet.has(k));
+  const newBugKeys = [...toSet].filter((k) => !fromSet.has(k));
+  const resolvedBugKeys = [...fromSet].filter((k) => !toSet.has(k));
   return { newBugKeys, resolvedBugKeys };
 }
 
@@ -46,16 +46,10 @@ export function compareSnapshots(fromSnapshot, toSnapshot) {
     totalBugsDelta: toSnapshot.totalBugs - fromSnapshot.totalBugs,
     byClassification: diffCounts(
       fromSnapshot.global?.byClassification,
-      toSnapshot.global?.byClassification
+      toSnapshot.global?.byClassification,
     ),
-    byPriority: diffCounts(
-      fromSnapshot.global?.byPriority,
-      toSnapshot.global?.byPriority
-    ),
-    byStatus: diffCounts(
-      fromSnapshot.global?.byStatus,
-      toSnapshot.global?.byStatus
-    )
+    byPriority: diffCounts(fromSnapshot.global?.byPriority, toSnapshot.global?.byPriority),
+    byStatus: diffCounts(fromSnapshot.global?.byStatus, toSnapshot.global?.byStatus),
   };
 
   // Per-release comparison
@@ -76,7 +70,7 @@ export function compareSnapshots(fromSnapshot, toSnapshot) {
       resolvedBugKeys,
       inflow: newBugKeys.length,
       outflow: resolvedBugKeys.length,
-      byClassification: diffCounts(fromRelease.byClassification, toRelease.byClassification)
+      byClassification: diffCounts(fromRelease.byClassification, toRelease.byClassification),
     };
 
     totalInflow += newBugKeys.length;
@@ -90,12 +84,12 @@ export function compareSnapshots(fromSnapshot, toSnapshot) {
     ? {
         netChange: toSnapshot.velocity.openBugs - fromSnapshot.velocity.openBugs,
         inflow: toSnapshot.velocity.createdInPeriod || 0,
-        outflow: toSnapshot.velocity.resolvedInPeriod || 0
+        outflow: toSnapshot.velocity.resolvedInPeriod || 0,
       }
     : {
         netChange: toSnapshot.totalBugs - fromSnapshot.totalBugs,
         inflow: totalInflow,
-        outflow: totalOutflow
+        outflow: totalOutflow,
       };
 
   return {
@@ -103,6 +97,6 @@ export function compareSnapshots(fromSnapshot, toSnapshot) {
     to: toSnapshot.snapshotId,
     global,
     releases,
-    velocity
+    velocity,
   };
 }

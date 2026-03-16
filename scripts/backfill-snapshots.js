@@ -73,7 +73,10 @@ function generateMonths(from, to) {
   while (y < toY || (y === toY && m <= toM)) {
     months.push(`${y}-${String(m).padStart(2, '0')}`);
     m++;
-    if (m > 12) { m = 1; y++; }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
   }
   return months;
 }
@@ -91,7 +94,7 @@ function lastDayOfMonth(snapshotId) {
  * Classify bugs using cache + rules only (no LLM for backfill).
  */
 function classifyBugsRulesOnly(bugs, cacheMap) {
-  return bugs.map(bug => {
+  return bugs.map((bug) => {
     const existing = cacheMap.get(bug.key);
     if (existing && existing.classification) {
       return {
@@ -99,7 +102,7 @@ function classifyBugsRulesOnly(bugs, cacheMap) {
         classification: existing.classification,
         classificationMethod: existing.classificationMethod,
         classificationReason: existing.classificationReason,
-        classifiedAt: existing.classifiedAt
+        classifiedAt: existing.classifiedAt,
       };
     }
     const ruleResult = classifyWithRules(bug);
@@ -111,7 +114,7 @@ function classifyBugsRulesOnly(bugs, cacheMap) {
       classification: 'uncategorized',
       classificationMethod: 'rule',
       classificationReason: 'Backfill — rules only, no match',
-      classifiedAt: new Date().toISOString()
+      classifiedAt: new Date().toISOString(),
     };
   });
 }
@@ -147,12 +150,14 @@ async function main() {
   for (let i = 0; i < months.length; i++) {
     const snapshotId = months[i];
     const asOfDate = lastDayOfMonth(snapshotId);
-    console.log(`[${i + 1}/${months.length}] Generating snapshot ${snapshotId} (as-of ${asOfDate})...`);
+    console.log(
+      `[${i + 1}/${months.length}] Generating snapshot ${snapshotId} (as-of ${asOfDate})...`,
+    );
 
     try {
       const bugs = await fetchBugs(projectKey, JIRA_TOKEN, { asOfDate });
-      const openBugs = bugs.filter(b => !b.isResolved);
-      const resolvedBugs = bugs.filter(b => b.isResolved);
+      const openBugs = bugs.filter((b) => !b.isResolved);
+      const resolvedBugs = bugs.filter((b) => b.isResolved);
       console.log(`  Fetched ${openBugs.length} open + ${resolvedBugs.length} resolved bugs`);
 
       const classifiedBugs = classifyBugsRulesOnly(bugs, cacheMap);
@@ -162,12 +167,16 @@ async function main() {
       generatedSnapshots.push({
         id: snapshotId,
         generatedAt: snapshot.generatedAt,
-        totalBugs: snapshot.totalBugs
+        totalBugs: snapshot.totalBugs,
       });
 
-      console.log(`  ${snapshot.totalBugs} open bugs, ${Object.keys(snapshot.releases).length} releases`);
+      console.log(
+        `  ${snapshot.totalBugs} open bugs, ${Object.keys(snapshot.releases).length} releases`,
+      );
       if (snapshot.velocity) {
-        console.log(`  Velocity: +${snapshot.velocity.createdInPeriod} created, -${snapshot.velocity.resolvedInPeriod} resolved`);
+        console.log(
+          `  Velocity: +${snapshot.velocity.createdInPeriod} created, -${snapshot.velocity.resolvedInPeriod} resolved`,
+        );
       }
     } catch (error) {
       console.error(`  ERROR: ${error.message}`);
@@ -178,12 +187,13 @@ async function main() {
   console.log('\nRebuilding snapshot index...');
   const existingIndex = await readFromStorage(`${projectKey}/snapshots/index.json`);
   const existingSnapshots = (existingIndex?.snapshots || []).filter(
-    s => s.id < fromMonth || s.id > toMonth
+    (s) => s.id < fromMonth || s.id > toMonth,
   );
 
   const index = {
-    snapshots: [...existingSnapshots, ...generatedSnapshots]
-      .sort((a, b) => b.id.localeCompare(a.id))
+    snapshots: [...existingSnapshots, ...generatedSnapshots].sort((a, b) =>
+      b.id.localeCompare(a.id),
+    ),
   };
 
   await writeToStorage(`${projectKey}/snapshots/index.json`, index);
@@ -200,7 +210,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal error:', err);
   process.exit(1);
 });

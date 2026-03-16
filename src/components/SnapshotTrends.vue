@@ -41,8 +41,19 @@
           @click="exportCsv"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
-          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            class="h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           Export CSV
         </button>
@@ -56,7 +67,11 @@
             <thead>
               <tr class="border-b text-left">
                 <th class="pb-2 font-medium text-gray-600">Release</th>
-                <th v-for="s in snapshots" :key="s.snapshotId" class="pb-2 font-medium text-gray-600 text-right">
+                <th
+                  v-for="s in snapshots"
+                  :key="s.snapshotId"
+                  class="pb-2 font-medium text-gray-600 text-right"
+                >
                   {{ formatLabel(s.snapshotId) }}
                 </th>
               </tr>
@@ -66,8 +81,20 @@
                 <td class="py-2 font-medium text-gray-900">{{ release }}</td>
                 <td v-for="(s, idx) in snapshots" :key="s.snapshotId" class="py-2 text-right">
                   <span class="text-gray-600">{{ getReleaseCount(s, release) }}</span>
-                  <span v-if="idx > 0" class="ml-1 text-xs" :class="netChangeColor(getReleaseCount(s, release) - getReleaseCount(snapshots[idx-1], release))">
-                    {{ formatSmallDelta(getReleaseCount(s, release) - getReleaseCount(snapshots[idx-1], release)) }}
+                  <span
+                    v-if="idx > 0"
+                    class="ml-1 text-xs"
+                    :class="
+                      netChangeColor(
+                        getReleaseCount(s, release) - getReleaseCount(snapshots[idx - 1], release),
+                      )
+                    "
+                  >
+                    {{
+                      formatSmallDelta(
+                        getReleaseCount(s, release) - getReleaseCount(snapshots[idx - 1], release),
+                      )
+                    }}
                   </span>
                 </td>
               </tr>
@@ -91,89 +118,101 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { getSnapshot } from '../services/api';
 import { compareSnapshots } from '../utils/snapshot-compare';
 import { exportTrendsCsv } from '../utils/csv-export';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+);
 
 export default {
   name: 'SnapshotTrends',
   components: { Line, Bar },
   props: {
-    snapshotList: { type: Array, required: true }
+    snapshotList: { type: Array, required: true },
   },
   data() {
     return {
       snapshots: [],
       velocityData: [],
-      isLoading: false
+      isLoading: false,
     };
   },
   computed: {
     labels() {
-      return this.snapshots.map(s => this.formatLabel(s.snapshotId));
+      return this.snapshots.map((s) => this.formatLabel(s.snapshotId));
     },
     totalBugsChartData() {
       return {
         labels: this.labels,
-        datasets: [{
-          label: 'Total Bugs',
-          data: this.snapshots.map(s => s.totalBugs),
-          borderColor: '#1d4ed8',
-          backgroundColor: 'rgba(29, 78, 216, 0.1)',
-          fill: true,
-          tension: 0.3
-        }]
+        datasets: [
+          {
+            label: 'Total Bugs',
+            data: this.snapshots.map((s) => s.totalBugs),
+            borderColor: '#1d4ed8',
+            backgroundColor: 'rgba(29, 78, 216, 0.1)',
+            fill: true,
+            tension: 0.3,
+          },
+        ],
       };
     },
     classificationChartData() {
       const categories = ['regression', 'usability', 'general-engineering', 'uncategorized'];
       const colors = {
-        'regression': { bg: 'rgba(220, 38, 38, 0.8)', border: '#dc2626' },
-        'usability': { bg: 'rgba(234, 88, 12, 0.8)', border: '#ea580c' },
+        regression: { bg: 'rgba(220, 38, 38, 0.8)', border: '#dc2626' },
+        usability: { bg: 'rgba(234, 88, 12, 0.8)', border: '#ea580c' },
         'general-engineering': { bg: 'rgba(37, 99, 235, 0.8)', border: '#2563eb' },
-        'uncategorized': { bg: 'rgba(156, 163, 175, 0.8)', border: '#9ca3af' }
+        uncategorized: { bg: 'rgba(156, 163, 175, 0.8)', border: '#9ca3af' },
       };
       const categoryLabels = {
-        'regression': 'Regression',
-        'usability': 'Usability',
+        regression: 'Regression',
+        usability: 'Usability',
         'general-engineering': 'Engineering',
-        'uncategorized': 'Uncategorized'
+        uncategorized: 'Uncategorized',
       };
 
       return {
         labels: this.labels,
-        datasets: categories.map(cat => ({
+        datasets: categories.map((cat) => ({
           label: categoryLabels[cat],
-          data: this.snapshots.map(s => (s.global?.byClassification || {})[cat] || 0),
+          data: this.snapshots.map((s) => (s.global?.byClassification || {})[cat] || 0),
           backgroundColor: colors[cat].bg,
           borderColor: colors[cat].border,
-          borderWidth: 1
-        }))
+          borderWidth: 1,
+        })),
       };
     },
     velocityChartData() {
       return {
-        labels: this.velocityData.map(v => v.label),
+        labels: this.velocityData.map((v) => v.label),
         datasets: [
           {
             label: 'Inflow (new bugs)',
-            data: this.velocityData.map(v => v.inflow),
+            data: this.velocityData.map((v) => v.inflow),
             backgroundColor: 'rgba(220, 38, 38, 0.7)',
             borderColor: '#dc2626',
-            borderWidth: 1
+            borderWidth: 1,
           },
           {
             label: 'Outflow (resolved)',
-            data: this.velocityData.map(v => v.outflow),
+            data: this.velocityData.map((v) => v.outflow),
             backgroundColor: 'rgba(22, 163, 74, 0.7)',
             borderColor: '#16a34a',
-            borderWidth: 1
-          }
-        ]
+            borderWidth: 1,
+          },
+        ],
       };
     },
     lineChartOptions() {
@@ -181,7 +220,7 @@ export default {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: false } }
+        scales: { y: { beginAtZero: false } },
       };
     },
     stackedBarOptions() {
@@ -191,8 +230,8 @@ export default {
         plugins: { legend: { position: 'bottom' } },
         scales: {
           x: { stacked: true },
-          y: { stacked: true, beginAtZero: true }
-        }
+          y: { stacked: true, beginAtZero: true },
+        },
       };
     },
     groupedBarOptions() {
@@ -200,7 +239,7 @@ export default {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true } }
+        scales: { y: { beginAtZero: true } },
       };
     },
     topReleases() {
@@ -212,7 +251,7 @@ export default {
         .sort((a, b) => b[1].totalBugs - a[1].totalBugs)
         .slice(0, 10)
         .map(([name]) => name);
-    }
+    },
   },
   async mounted() {
     await this.loadAllSnapshots();
@@ -222,7 +261,7 @@ export default {
       if (this.snapshotList.length < 2) return;
       this.isLoading = true;
       try {
-        const fetches = this.snapshotList.map(s => getSnapshot(s.id));
+        const fetches = this.snapshotList.map((s) => getSnapshot(s.id));
         const results = await Promise.all(fetches);
         // Sort chronologically (oldest first)
         this.snapshots = results.sort((a, b) => a.snapshotId.localeCompare(b.snapshotId));
@@ -236,7 +275,7 @@ export default {
             label: this.formatLabel(this.snapshots[i].snapshotId),
             inflow: comparison.velocity.inflow,
             outflow: comparison.velocity.outflow,
-            netChange: comparison.velocity.netChange
+            netChange: comparison.velocity.netChange,
           });
         }
       } catch (error) {
@@ -263,7 +302,7 @@ export default {
     netChangeColor(n) {
       if (n === 0) return 'text-gray-400';
       return n < 0 ? 'text-green-600' : 'text-red-600';
-    }
-  }
+    },
+  },
 };
 </script>

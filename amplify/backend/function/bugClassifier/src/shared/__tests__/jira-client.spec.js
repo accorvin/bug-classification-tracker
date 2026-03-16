@@ -19,7 +19,7 @@ function mockResponse(issues) {
   return {
     ok: true,
     json: async () => ({ issues }),
-    text: async () => ''
+    text: async () => '',
   };
 }
 
@@ -27,7 +27,7 @@ function mockError(status, body) {
   return {
     ok: false,
     status,
-    text: async () => body
+    text: async () => body,
   };
 }
 
@@ -50,8 +50,8 @@ function makeJiraIssue(overrides = {}) {
       resolutiondate: null,
       fixVersions: [],
       versions: [],
-      ...overrides
-    }
+      ...overrides,
+    },
   };
 }
 
@@ -64,7 +64,9 @@ describe('fetchBugs JQL generation', () => {
 
     const url = fetchCalls[0].url;
     const jql = decodeURIComponent(url.split('jql=')[1].split('&')[0]);
-    expect(jql).toBe('project = RHOAIENG AND type = Bug AND resolution = Unresolved ORDER BY updated DESC');
+    expect(jql).toBe(
+      'project = RHOAIENG AND type = Bug AND resolution = Unresolved ORDER BY updated DESC',
+    );
   });
 
   it('should include resolved bugs when includeResolved is true', async () => {
@@ -132,10 +134,14 @@ describe('fetchBugs transformation', () => {
   });
 
   it('should map resolution and resolutiondate for resolved bugs', async () => {
-    fetchResponses.push(mockResponse([makeJiraIssue({
-      resolution: { name: 'Done' },
-      resolutiondate: '2026-03-15T12:00:00Z'
-    })]));
+    fetchResponses.push(
+      mockResponse([
+        makeJiraIssue({
+          resolution: { name: 'Done' },
+          resolutiondate: '2026-03-15T12:00:00Z',
+        }),
+      ]),
+    );
     const bugs = await fetchBugs('PROJ', 'token');
 
     expect(bugs[0].resolution).toBe('Done');
@@ -144,10 +150,14 @@ describe('fetchBugs transformation', () => {
   });
 
   it('should map fixVersions and affectsVersions (versions field)', async () => {
-    fetchResponses.push(mockResponse([makeJiraIssue({
-      fixVersions: [{ name: 'rhoai-3.4.1' }],
-      versions: [{ name: 'rhoai-3.3' }, { name: 'rhoai-3.4' }]
-    })]));
+    fetchResponses.push(
+      mockResponse([
+        makeJiraIssue({
+          fixVersions: [{ name: 'rhoai-3.4.1' }],
+          versions: [{ name: 'rhoai-3.3' }, { name: 'rhoai-3.4' }],
+        }),
+      ]),
+    );
     const bugs = await fetchBugs('PROJ', 'token');
 
     expect(bugs[0].fixVersions).toEqual(['rhoai-3.4.1']);
@@ -155,10 +165,14 @@ describe('fetchBugs transformation', () => {
   });
 
   it('should default missing fields gracefully', async () => {
-    fetchResponses.push(mockResponse([{
-      key: 'PROJ-1',
-      fields: {}
-    }]));
+    fetchResponses.push(
+      mockResponse([
+        {
+          key: 'PROJ-1',
+          fields: {},
+        },
+      ]),
+    );
     const bugs = await fetchBugs('PROJ', 'token');
 
     const bug = bugs[0];
@@ -185,17 +199,25 @@ describe('fetchBugs transformation', () => {
 
 describe('fetchBugs severity extraction', () => {
   it('should use custom field value when present', async () => {
-    fetchResponses.push(mockResponse([makeJiraIssue({
-      customfield_12316142: { value: 'Critical' }
-    })]));
+    fetchResponses.push(
+      mockResponse([
+        makeJiraIssue({
+          customfield_12316142: { value: 'Critical' },
+        }),
+      ]),
+    );
     const bugs = await fetchBugs('PROJ', 'token');
     expect(bugs[0].severity).toBe('Critical');
   });
 
   it('should use severity label when present', async () => {
-    fetchResponses.push(mockResponse([makeJiraIssue({
-      labels: ['Urgent', 'some-other-label']
-    })]));
+    fetchResponses.push(
+      mockResponse([
+        makeJiraIssue({
+          labels: ['Urgent', 'some-other-label'],
+        }),
+      ]),
+    );
     const bugs = await fetchBugs('PROJ', 'token');
     expect(bugs[0].severity).toBe('Urgent');
   });
@@ -206,7 +228,7 @@ describe('fetchBugs severity extraction', () => {
       [{ name: 'Critical' }, 'Urgent'],
       [{ name: 'Major' }, 'High'],
       [{ name: 'Minor' }, 'Medium'],
-      [{ name: 'Trivial' }, 'Low']
+      [{ name: 'Trivial' }, 'Low'],
     ];
 
     for (const [priority, expected] of cases) {
@@ -223,12 +245,10 @@ describe('fetchBugs severity extraction', () => {
 describe('fetchBugs pagination', () => {
   it('should paginate when a page returns maxResults issues', async () => {
     // First page: 100 issues (triggers next page)
-    const page1 = Array.from({ length: 100 }, (_, i) =>
-      makeJiraIssue({ summary: `Bug ${i}` })
-    );
+    const page1 = Array.from({ length: 100 }, (_, i) => makeJiraIssue({ summary: `Bug ${i}` }));
     // Second page: 30 issues (less than 100, stops)
     const page2 = Array.from({ length: 30 }, (_, i) =>
-      makeJiraIssue({ summary: `Bug ${100 + i}` })
+      makeJiraIssue({ summary: `Bug ${100 + i}` }),
     );
 
     fetchResponses.push(mockResponse(page1), mockResponse(page2));

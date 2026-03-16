@@ -23,7 +23,12 @@
 import 'dotenv/config';
 import { readFromStorage, writeToStorage } from '../server/storage.js';
 import { fetchBugs } from '../amplify/backend/function/bugClassifier/src/shared/jira-client.js';
-import { classifyBugsBatch, classifyWithRules, buildSummary, needsReclassification } from '../amplify/backend/function/bugClassifier/src/shared/classification.js';
+import {
+  classifyBugsBatch,
+  classifyWithRules,
+  buildSummary,
+  needsReclassification,
+} from '../amplify/backend/function/bugClassifier/src/shared/classification.js';
 import { buildSnapshot } from '../amplify/backend/function/bugClassifier/src/shared/snapshot.js';
 
 // Parse CLI arguments
@@ -71,13 +76,17 @@ async function main() {
     // Step 1: Fetch bugs from Jira (including recently resolved for velocity)
     console.log(`[1/7] Fetching bugs from Jira for project ${projectKey} (including resolved)...`);
     const allBugs = await fetchBugs(projectKey, JIRA_TOKEN, { includeResolved: true });
-    const openBugs = allBugs.filter(b => !b.isResolved);
-    const resolvedBugs = allBugs.filter(b => b.isResolved);
-    console.log(`      Found ${openBugs.length} open + ${resolvedBugs.length} recently resolved bugs\n`);
+    const openBugs = allBugs.filter((b) => !b.isResolved);
+    const resolvedBugs = allBugs.filter((b) => b.isResolved);
+    console.log(
+      `      Found ${openBugs.length} open + ${resolvedBugs.length} recently resolved bugs\n`,
+    );
 
     // Step 2: Load existing classified data for caching
     console.log('[2/7] Loading existing classified data from S3...');
-    const existingData = hardRefresh ? null : await readFromStorage(`${projectKey}/classified-bugs.json`);
+    const existingData = hardRefresh
+      ? null
+      : await readFromStorage(`${projectKey}/classified-bugs.json`);
     const existingBugsMap = new Map();
     if (existingData && existingData.bugs) {
       for (const bug of existingData.bugs) {
@@ -101,7 +110,7 @@ async function main() {
           classification: existing.classification,
           classificationMethod: existing.classificationMethod,
           classificationReason: existing.classificationReason,
-          classifiedAt: existing.classifiedAt
+          classifiedAt: existing.classifiedAt,
         });
       } else {
         toClassify.push(bug);
@@ -112,18 +121,24 @@ async function main() {
     console.log(`      To classify: ${toClassify.length} bugs\n`);
 
     // Step 4: Classify open bugs (rules + LLM)
-    console.log(`[4/7] Classifying ${toClassify.length} open bugs with concurrency ${concurrency}...`);
-    const freshlyClassified = await classifyBugsBatch(toClassify, concurrency, (done, total, msg) => {
-      const percent = Math.round((done / total) * 100);
-      console.log(`      [${done}/${total}] ${percent}% - ${msg}`);
-    });
+    console.log(
+      `[4/7] Classifying ${toClassify.length} open bugs with concurrency ${concurrency}...`,
+    );
+    const freshlyClassified = await classifyBugsBatch(
+      toClassify,
+      concurrency,
+      (done, total, msg) => {
+        const percent = Math.round((done / total) * 100);
+        console.log(`      [${done}/${total}] ${percent}% - ${msg}`);
+      },
+    );
 
     const classifiedOpenBugs = [...cached, ...freshlyClassified];
     console.log(`      Total open classified: ${classifiedOpenBugs.length} bugs\n`);
 
     // Step 5: Classify resolved bugs (cache + rules only, no LLM to control costs)
     console.log(`[5/7] Classifying ${resolvedBugs.length} resolved bugs (rules only)...`);
-    const classifiedResolvedBugs = resolvedBugs.map(bug => {
+    const classifiedResolvedBugs = resolvedBugs.map((bug) => {
       const existing = existingBugsMap.get(bug.key);
       if (existing && existing.classification) {
         return {
@@ -131,7 +146,7 @@ async function main() {
           classification: existing.classification,
           classificationMethod: existing.classificationMethod,
           classificationReason: existing.classificationReason,
-          classifiedAt: existing.classifiedAt
+          classifiedAt: existing.classifiedAt,
         };
       }
       const ruleResult = classifyWithRules(bug);
@@ -143,17 +158,21 @@ async function main() {
         classification: 'uncategorized',
         classificationMethod: 'rule',
         classificationReason: 'Resolved bug — rules only, no match',
-        classifiedAt: new Date().toISOString()
+        classifiedAt: new Date().toISOString(),
       };
     });
-    const resolvedCached = classifiedResolvedBugs.filter(b => existingBugsMap.has(b.key) && existingBugsMap.get(b.key).classification).length;
-    console.log(`      ${resolvedCached} from cache, ${classifiedResolvedBugs.length - resolvedCached} rule-classified\n`);
+    const resolvedCached = classifiedResolvedBugs.filter(
+      (b) => existingBugsMap.has(b.key) && existingBugsMap.get(b.key).classification,
+    ).length;
+    console.log(
+      `      ${resolvedCached} from cache, ${classifiedResolvedBugs.length - resolvedCached} rule-classified\n`,
+    );
 
     // Step 6: Build summary and upload to S3 (open bugs only)
     console.log('[6/7] Building summary and uploading to S3...');
     const bugsOutput = {
       lastUpdated: new Date().toISOString(),
-      bugs: classifiedOpenBugs
+      bugs: classifiedOpenBugs,
     };
     await writeToStorage(`${projectKey}/classified-bugs.json`, bugsOutput);
     console.log(`      Uploaded ${projectKey}/classified-bugs.json`);
@@ -173,14 +192,22 @@ async function main() {
     console.log(`      Uploaded ${projectKey}/snapshots/${snapshotId}.json`);
 
     const releaseCount = Object.keys(snapshot.releases).length;
-    console.log(`      ${releaseCount} release groups (${snapshot.versionedBugs} versioned, ${snapshot.unversionedBugs} unversioned)`);
-    console.log(`      Data quality: ${snapshot.dataQuality.pctWithVersion}% of bugs have version info`);
+    console.log(
+      `      ${releaseCount} release groups (${snapshot.versionedBugs} versioned, ${snapshot.unversionedBugs} unversioned)`,
+    );
+    console.log(
+      `      Data quality: ${snapshot.dataQuality.pctWithVersion}% of bugs have version info`,
+    );
 
     // Update snapshot index
     const existingIndex = await readFromStorage(`${projectKey}/snapshots/index.json`);
     const index = existingIndex || { snapshots: [] };
-    const existingEntry = index.snapshots.findIndex(s => s.id === snapshotId);
-    const entry = { id: snapshotId, generatedAt: snapshot.generatedAt, totalBugs: snapshot.totalBugs };
+    const existingEntry = index.snapshots.findIndex((s) => s.id === snapshotId);
+    const entry = {
+      id: snapshotId,
+      generatedAt: snapshot.generatedAt,
+      totalBugs: snapshot.totalBugs,
+    };
     if (existingEntry >= 0) {
       index.snapshots[existingEntry] = entry;
       console.log(`      Updated existing entry in snapshot index`);
@@ -202,7 +229,9 @@ async function main() {
     console.log(`Newly classified: ${toClassify.length}`);
     console.log(`From cache:       ${cached.length}`);
     if (snapshot.velocity) {
-      console.log(`Velocity:         +${snapshot.velocity.createdInPeriod} created, -${snapshot.velocity.resolvedInPeriod} resolved`);
+      console.log(
+        `Velocity:         +${snapshot.velocity.createdInPeriod} created, -${snapshot.velocity.resolvedInPeriod} resolved`,
+      );
     }
     console.log(`Last updated:     ${bugsOutput.lastUpdated}`);
     console.log('='.repeat(60));

@@ -14,7 +14,7 @@ export async function readFromStorage(key) {
   try {
     const command = new GetObjectCommand({
       Bucket: S3_BUCKET,
-      Key: S3_PREFIX + key
+      Key: S3_PREFIX + key,
     });
     const response = await s3Client.send(command);
     const raw = await response.Body.transformToString();

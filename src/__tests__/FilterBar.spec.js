@@ -7,8 +7,8 @@ describe('FilterBar', () => {
     const wrapper = mount(FilterBar, {
       props: {
         priorities: ['High', 'Medium', 'Low'],
-        teams: ['Team A', 'Team B']
-      }
+        teams: ['Team A', 'Team B'],
+      },
     });
 
     expect(wrapper.text()).toContain('Classification');
@@ -20,8 +20,8 @@ describe('FilterBar', () => {
     const wrapper = mount(FilterBar, {
       props: {
         priorities: [],
-        teams: []
-      }
+        teams: [],
+      },
     });
 
     const select = wrapper.findAll('select')[0];
@@ -33,7 +33,7 @@ describe('FilterBar', () => {
       priority: '',
       team: '',
       dateFrom: '',
-      dateTo: ''
+      dateTo: '',
     });
   });
 
@@ -41,8 +41,8 @@ describe('FilterBar', () => {
     const wrapper = mount(FilterBar, {
       props: {
         priorities: [],
-        teams: []
-      }
+        teams: [],
+      },
     });
 
     // Set some filters
