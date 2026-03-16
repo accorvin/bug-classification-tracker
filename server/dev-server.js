@@ -24,7 +24,8 @@ app.use(function (req, res, next) {
 
 const PORT = process.env.API_PORT || 3001;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
-const JIRA_HOST = process.env.JIRA_HOST || 'https://issues.redhat.com';
+const JIRA_EMAIL = process.env.JIRA_EMAIL;
+const JIRA_HOST = process.env.JIRA_HOST || 'https://redhat.atlassian.net';
 const S3_BUCKET = process.env.BUG_DATA_S3_BUCKET;
 
 // ---------------------------------------------------------------------------
@@ -202,9 +203,10 @@ app.get('/api/refresh', async function (req, res) {
     const concurrency = parseInt(req.query.concurrency, 10) || 20;
     const hardRefresh = req.query.hard === '1';
 
-    if (!JIRA_TOKEN) {
+    if (!JIRA_TOKEN || !JIRA_EMAIL) {
       sendEvent('error', {
-        error: 'JIRA_TOKEN environment variable is not set. Add it to your .env file.',
+        error:
+          'JIRA_TOKEN and JIRA_EMAIL environment variables must be set. Add them to your .env file.',
       });
       res.end();
       return;
@@ -214,7 +216,7 @@ app.get('/api/refresh', async function (req, res) {
     sendEvent('progress', { phase: 'fetching', message: 'Fetching bugs from Jira...' });
 
     // Fetch bugs from Jira (only unresolved)
-    const bugs = await fetchBugs(projectKey, JIRA_TOKEN);
+    const bugs = await fetchBugs(projectKey, JIRA_TOKEN, { jiraEmail: JIRA_EMAIL });
     console.log(`Found ${bugs.length} unresolved bugs from Jira`);
 
     // Load previously classified bugs — reuse classifications that haven't changed
@@ -313,5 +315,6 @@ app.options('/api/*path', function (req, res) {
 app.listen(PORT, function () {
   console.log(`\n  Local dev server running at http://localhost:${PORT}`);
   console.log(`  JIRA_TOKEN: ${JIRA_TOKEN ? 'set' : 'NOT SET (refresh will fail)'}`);
+  console.log(`  JIRA_EMAIL: ${JIRA_EMAIL ? JIRA_EMAIL : 'NOT SET (refresh will fail)'}`);
   console.log(`  Jira host:  ${JIRA_HOST}\n`);
 });

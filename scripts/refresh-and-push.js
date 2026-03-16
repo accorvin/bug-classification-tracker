@@ -39,6 +39,7 @@ const concurrency = parseInt(getArg('--concurrency') || '20', 10);
 
 // Environment variables
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
+const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const S3_BUCKET = process.env.BUG_DATA_S3_BUCKET;
 
 function getArg(flag) {
@@ -52,6 +53,10 @@ function getArg(flag) {
 // Validation
 if (!JIRA_TOKEN) {
   console.error('ERROR: JIRA_TOKEN environment variable is not set');
+  process.exit(1);
+}
+if (!JIRA_EMAIL) {
+  console.error('ERROR: JIRA_EMAIL environment variable is not set');
   process.exit(1);
 }
 
@@ -75,7 +80,10 @@ async function main() {
   try {
     // Step 1: Fetch bugs from Jira (including recently resolved for velocity)
     console.log(`[1/7] Fetching bugs from Jira for project ${projectKey} (including resolved)...`);
-    const allBugs = await fetchBugs(projectKey, JIRA_TOKEN, { includeResolved: true });
+    const allBugs = await fetchBugs(projectKey, JIRA_TOKEN, {
+      includeResolved: true,
+      jiraEmail: JIRA_EMAIL,
+    });
     const openBugs = allBugs.filter((b) => !b.isResolved);
     const resolvedBugs = allBugs.filter((b) => b.isResolved);
     console.log(

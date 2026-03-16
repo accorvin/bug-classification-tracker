@@ -10,15 +10,20 @@ beforeEach(() => {
   fetchResponses = [];
   vi.stubGlobal('fetch', async (url, opts) => {
     fetchCalls.push({ url, opts });
-    const response = fetchResponses.shift() || { ok: true, json: async () => ({ issues: [] }) };
+    const response = fetchResponses.shift() || {
+      ok: true,
+      json: async () => ({ issues: [], isLast: true }),
+    };
     return response;
   });
 });
 
-function mockResponse(issues) {
+function mockResponse(issues, isLast = true, nextPageToken = null) {
+  const body = { issues, isLast };
+  if (nextPageToken) body.nextPageToken = nextPageToken;
   return {
     ok: true,
-    json: async () => ({ issues }),
+    json: async () => body,
     text: async () => '',
   };
 }
@@ -31,13 +36,22 @@ function mockError(status, body) {
   };
 }
 
-// Minimal Jira issue matching the API shape
+// Minimal Jira issue matching the API v3 shape
 function makeJiraIssue(overrides = {}) {
   return {
     key: 'RHOAIENG-100',
     fields: {
       summary: 'Test bug summary',
-      description: 'Test description',
+      description: {
+        type: 'doc',
+        version: 1,
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Test description' }],
+          },
+        ],
+      },
       status: { name: 'New' },
       priority: { name: 'Major' },
       components: [{ name: 'Dashboard' }],
@@ -60,48 +74,61 @@ function makeJiraIssue(overrides = {}) {
 describe('fetchBugs JQL generation', () => {
   it('should use unresolved-only JQL by default', async () => {
     fetchResponses.push(mockResponse([]));
-    await fetchBugs('RHOAIENG', 'token123');
+    await fetchBugs('RHOAIENG', 'token123', { jiraEmail: 'test@test.com' });
 
-    const url = fetchCalls[0].url;
-    const jql = decodeURIComponent(url.split('jql=')[1].split('&')[0]);
-    expect(jql).toBe(
+    const body = JSON.parse(fetchCalls[0].opts.body);
+    expect(body.jql).toBe(
       'project = RHOAIENG AND type = Bug AND resolution = Unresolved ORDER BY updated DESC',
     );
   });
 
   it('should include resolved bugs when includeResolved is true', async () => {
     fetchResponses.push(mockResponse([]));
-    await fetchBugs('RHOAIENG', 'token123', { includeResolved: true });
+    await fetchBugs('RHOAIENG', 'token123', {
+      includeResolved: true,
+      jiraEmail: 'test@test.com',
+    });
 
-    const url = fetchCalls[0].url;
-    const jql = decodeURIComponent(url.split('jql=')[1].split('&')[0]);
-    expect(jql).toContain('resolution = Unresolved OR');
-    expect(jql).toContain('resolved >= "-60d"');
+    const body = JSON.parse(fetchCalls[0].opts.body);
+    expect(body.jql).toContain('resolution = Unresolved OR');
+    expect(body.jql).toContain('resolved >= "-60d"');
   });
 
   it('should use backfill JQL when asOfDate is provided', async () => {
     fetchResponses.push(mockResponse([]));
-    await fetchBugs('RHOAIENG', 'token123', { asOfDate: '2025-12-31' });
+    await fetchBugs('RHOAIENG', 'token123', {
+      asOfDate: '2025-12-31',
+      jiraEmail: 'test@test.com',
+    });
 
-    const url = fetchCalls[0].url;
-    const jql = decodeURIComponent(url.split('jql=')[1].split('&')[0]);
-    expect(jql).toContain('created <= "2025-12-31"');
-    expect(jql).toContain('resolved >= "2025-12-31"');
+    const body = JSON.parse(fetchCalls[0].opts.body);
+    expect(body.jql).toContain('created <= "2025-12-31"');
+    expect(body.jql).toContain('resolved >= "2025-12-31"');
   });
 
-  it('should send Bearer token in Authorization header', async () => {
+  it('should send Basic Auth header with email and token', async () => {
     fetchResponses.push(mockResponse([]));
-    await fetchBugs('RHOAIENG', 'my-secret-token');
+    await fetchBugs('RHOAIENG', 'my-secret-token', { jiraEmail: 'user@test.com' });
 
-    expect(fetchCalls[0].opts.headers.Authorization).toBe('Bearer my-secret-token');
+    const expectedAuth = `Basic ${Buffer.from('user@test.com:my-secret-token').toString('base64')}`;
+    expect(fetchCalls[0].opts.headers.Authorization).toBe(expectedAuth);
   });
 
-  it('should request resolutiondate in the fields list', async () => {
+  it('should use POST method with JSON body', async () => {
     fetchResponses.push(mockResponse([]));
-    await fetchBugs('RHOAIENG', 'token123');
+    await fetchBugs('RHOAIENG', 'token123', { jiraEmail: 'test@test.com' });
 
-    const url = fetchCalls[0].url;
-    expect(url).toContain('resolutiondate');
+    expect(fetchCalls[0].opts.method).toBe('POST');
+    expect(fetchCalls[0].opts.headers['Content-Type']).toBe('application/json');
+    expect(fetchCalls[0].url).toContain('/rest/api/3/search/jql');
+  });
+
+  it('should request the severity custom field', async () => {
+    fetchResponses.push(mockResponse([]));
+    await fetchBugs('RHOAIENG', 'token123', { jiraEmail: 'test@test.com' });
+
+    const body = JSON.parse(fetchCalls[0].opts.body);
+    expect(body.fields).toContain('customfield_10840');
   });
 });
 
@@ -110,13 +137,13 @@ describe('fetchBugs JQL generation', () => {
 describe('fetchBugs transformation', () => {
   it('should transform a standard open bug', async () => {
     fetchResponses.push(mockResponse([makeJiraIssue()]));
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
 
     expect(bugs).toHaveLength(1);
     const bug = bugs[0];
     expect(bug.key).toBe('RHOAIENG-100');
     expect(bug.summary).toBe('Test bug summary');
-    expect(bug.description).toBe('Test description');
+    expect(bug.description).toBe('Test description\n');
     expect(bug.status).toBe('New');
     expect(bug.priority).toBe('Major');
     expect(bug.component).toBe('Dashboard');
@@ -133,6 +160,38 @@ describe('fetchBugs transformation', () => {
     expect(bug.affectsVersions).toEqual([]);
   });
 
+  it('should convert ADF description to plain text', async () => {
+    const adfDescription = {
+      type: 'doc',
+      version: 1,
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 3 },
+          content: [{ type: 'text', text: 'Problem' }],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Something is ' },
+            { type: 'text', text: 'broken' },
+          ],
+        },
+      ],
+    };
+    fetchResponses.push(mockResponse([makeJiraIssue({ description: adfDescription })]));
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
+
+    expect(bugs[0].description).toBe('Problem\nSomething is broken\n');
+  });
+
+  it('should handle null description', async () => {
+    fetchResponses.push(mockResponse([makeJiraIssue({ description: null })]));
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
+
+    expect(bugs[0].description).toBe('');
+  });
+
   it('should map resolution and resolutiondate for resolved bugs', async () => {
     fetchResponses.push(
       mockResponse([
@@ -142,7 +201,7 @@ describe('fetchBugs transformation', () => {
         }),
       ]),
     );
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
 
     expect(bugs[0].resolution).toBe('Done');
     expect(bugs[0].resolved).toBe('2026-03-15T12:00:00Z');
@@ -158,7 +217,7 @@ describe('fetchBugs transformation', () => {
         }),
       ]),
     );
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
 
     expect(bugs[0].fixVersions).toEqual(['rhoai-3.4.1']);
     expect(bugs[0].affectsVersions).toEqual(['rhoai-3.3', 'rhoai-3.4']);
@@ -173,7 +232,7 @@ describe('fetchBugs transformation', () => {
         },
       ]),
     );
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
 
     const bug = bugs[0];
     expect(bug.summary).toBe('');
@@ -202,11 +261,11 @@ describe('fetchBugs severity extraction', () => {
     fetchResponses.push(
       mockResponse([
         makeJiraIssue({
-          customfield_12316142: { value: 'Critical' },
+          customfield_10840: { value: 'Critical' },
         }),
       ]),
     );
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
     expect(bugs[0].severity).toBe('Critical');
   });
 
@@ -218,7 +277,7 @@ describe('fetchBugs severity extraction', () => {
         }),
       ]),
     );
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
     expect(bugs[0].severity).toBe('Urgent');
   });
 
@@ -234,7 +293,7 @@ describe('fetchBugs severity extraction', () => {
     for (const [priority, expected] of cases) {
       fetchCalls = [];
       fetchResponses.push(mockResponse([makeJiraIssue({ priority })]));
-      const bugs = await fetchBugs('PROJ', 'token');
+      const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
       expect(bugs[0].severity).toBe(expected);
     }
   });
@@ -243,32 +302,33 @@ describe('fetchBugs severity extraction', () => {
 // --- Pagination ---
 
 describe('fetchBugs pagination', () => {
-  it('should paginate when a page returns maxResults issues', async () => {
-    // First page: 100 issues (triggers next page)
+  it('should paginate using nextPageToken when isLast is false', async () => {
+    // First page: 100 issues, not last
     const page1 = Array.from({ length: 100 }, (_, i) => makeJiraIssue({ summary: `Bug ${i}` }));
-    // Second page: 30 issues (less than 100, stops)
+    // Second page: 30 issues, last page
     const page2 = Array.from({ length: 30 }, (_, i) =>
       makeJiraIssue({ summary: `Bug ${100 + i}` }),
     );
 
-    fetchResponses.push(mockResponse(page1), mockResponse(page2));
-    const bugs = await fetchBugs('PROJ', 'token');
+    fetchResponses.push(mockResponse(page1, false, 'page2token'), mockResponse(page2, true));
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
 
     expect(bugs).toHaveLength(130);
     expect(fetchCalls).toHaveLength(2);
-    expect(fetchCalls[0].url).toContain('startAt=0');
-    expect(fetchCalls[1].url).toContain('startAt=100');
+
+    // First request should not have nextPageToken
+    const body1 = JSON.parse(fetchCalls[0].opts.body);
+    expect(body1.nextPageToken).toBeUndefined();
+
+    // Second request should include the nextPageToken
+    const body2 = JSON.parse(fetchCalls[1].opts.body);
+    expect(body2.nextPageToken).toBe('page2token');
   });
 
   it('should stop when an empty page is returned', async () => {
-    fetchResponses.push(mockResponse([makeJiraIssue()]), mockResponse([]));
+    fetchResponses.push(mockResponse([makeJiraIssue()], true));
 
-    // This test ensures we don't loop infinitely when exactly maxResults issues
-    // are returned on the first page but the second page is empty
-    // (edge case: API returns 100 on first call, then 0)
-    // However, the code only fetches page 2 if page 1 has maxResults (100) items.
-    // With 1 item on page 1, it stops immediately.
-    const bugs = await fetchBugs('PROJ', 'token');
+    const bugs = await fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' });
     expect(bugs).toHaveLength(1);
     expect(fetchCalls).toHaveLength(1);
   });
@@ -280,6 +340,8 @@ describe('fetchBugs error handling', () => {
   it('should throw on non-OK response', async () => {
     fetchResponses.push(mockError(401, 'Unauthorized'));
 
-    await expect(fetchBugs('PROJ', 'token')).rejects.toThrow('Jira API error (401): Unauthorized');
+    await expect(fetchBugs('PROJ', 'token', { jiraEmail: 'test@test.com' })).rejects.toThrow(
+      'Jira API error (401): Unauthorized',
+    );
   });
 });
