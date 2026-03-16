@@ -5,14 +5,26 @@
       <div class="flex items-center gap-4 flex-wrap">
         <div class="flex items-center gap-2">
           <label class="text-sm font-medium text-gray-600">From:</label>
-          <select v-model="fromId" @change="computeComparison" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-primary-500 focus:border-primary-500">
-            <option v-for="s in snapshotList" :key="s.id" :value="s.id">{{ formatLabel(s.id) }}</option>
+          <select
+            v-model="fromId"
+            @change="computeComparison"
+            class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option v-for="s in snapshotList" :key="s.id" :value="s.id">
+              {{ formatLabel(s.id) }}
+            </option>
           </select>
         </div>
         <div class="flex items-center gap-2">
           <label class="text-sm font-medium text-gray-600">To:</label>
-          <select v-model="toId" @change="computeComparison" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-primary-500 focus:border-primary-500">
-            <option v-for="s in snapshotList" :key="s.id" :value="s.id">{{ formatLabel(s.id) }}</option>
+          <select
+            v-model="toId"
+            @change="computeComparison"
+            class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option v-for="s in snapshotList" :key="s.id" :value="s.id">
+              {{ formatLabel(s.id) }}
+            </option>
           </select>
         </div>
       </div>
@@ -34,17 +46,29 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-lg shadow p-5">
           <div class="text-sm font-medium text-gray-500">Total Bugs</div>
-          <div class="text-2xl font-bold mt-1" :class="deltaColor(comparison.global.totalBugsDelta, true)">
+          <div
+            class="text-2xl font-bold mt-1"
+            :class="deltaColor(comparison.global.totalBugsDelta, true)"
+          >
             {{ formatDelta(comparison.global.totalBugsDelta) }}
           </div>
         </div>
-        <div v-for="cat in classificationCategories" :key="cat" class="bg-white rounded-lg shadow p-5">
+        <div
+          v-for="cat in classificationCategories"
+          :key="cat"
+          class="bg-white rounded-lg shadow p-5"
+        >
           <div class="text-sm font-medium text-gray-500">{{ categoryLabel(cat) }}</div>
-          <div v-if="comparison.global.byClassification[cat]" class="text-2xl font-bold mt-1" :class="deltaColor(comparison.global.byClassification[cat].delta, true)">
+          <div
+            v-if="comparison.global.byClassification[cat]"
+            class="text-2xl font-bold mt-1"
+            :class="deltaColor(comparison.global.byClassification[cat].delta, true)"
+          >
             {{ formatDelta(comparison.global.byClassification[cat].delta) }}
           </div>
           <div v-if="comparison.global.byClassification[cat]" class="text-xs text-gray-400 mt-1">
-            {{ comparison.global.byClassification[cat].from }} → {{ comparison.global.byClassification[cat].to }}
+            {{ comparison.global.byClassification[cat].from }} →
+            {{ comparison.global.byClassification[cat].to }}
           </div>
         </div>
       </div>
@@ -65,7 +89,10 @@
           </div>
           <div class="text-center">
             <div class="text-sm text-gray-500">Net Change</div>
-            <div class="text-2xl font-bold" :class="deltaColor(comparison.velocity.netChange, true)">
+            <div
+              class="text-2xl font-bold"
+              :class="deltaColor(comparison.velocity.netChange, true)"
+            >
               {{ formatDelta(comparison.velocity.netChange) }}
             </div>
           </div>
@@ -78,8 +105,19 @@
           @click="exportCsv"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
-          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            class="h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           Export CSV
         </button>
@@ -101,15 +139,26 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="release in sortedReleaseDeltas" :key="release.name" class="border-b last:border-0">
+              <tr
+                v-for="release in sortedReleaseDeltas"
+                :key="release.name"
+                class="border-b last:border-0"
+              >
                 <td class="py-2 font-medium text-gray-900">{{ release.name }}</td>
                 <td class="py-2 text-right text-gray-600">{{ release.data.fromTotal }}</td>
                 <td class="py-2 text-right text-gray-600">{{ release.data.toTotal }}</td>
-                <td class="py-2 text-right font-medium" :class="deltaColor(release.data.totalBugsDelta, true)">
+                <td
+                  class="py-2 text-right font-medium"
+                  :class="deltaColor(release.data.totalBugsDelta, true)"
+                >
                   {{ formatDelta(release.data.totalBugsDelta) }}
                 </td>
-                <td class="py-2 text-right text-red-600">{{ release.data.inflow > 0 ? '+' + release.data.inflow : '—' }}</td>
-                <td class="py-2 text-right text-green-600">{{ release.data.outflow > 0 ? '-' + release.data.outflow : '—' }}</td>
+                <td class="py-2 text-right text-red-600">
+                  {{ release.data.inflow > 0 ? '+' + release.data.inflow : '—' }}
+                </td>
+                <td class="py-2 text-right text-green-600">
+                  {{ release.data.outflow > 0 ? '-' + release.data.outflow : '—' }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -127,7 +176,7 @@ import { exportComparisonCsv } from '../utils/csv-export';
 export default {
   name: 'SnapshotCompare',
   props: {
-    snapshotList: { type: Array, required: true }
+    snapshotList: { type: Array, required: true },
   },
   data() {
     return {
@@ -135,7 +184,7 @@ export default {
       toId: null,
       comparison: null,
       isLoading: false,
-      snapshotCache: {}
+      snapshotCache: {},
     };
   },
   computed: {
@@ -146,15 +195,15 @@ export default {
       if (!this.comparison) return [];
       return Object.entries(this.comparison.releases)
         .map(([name, data]) => ({ name, data }))
-        .filter(r => r.data.totalBugsDelta !== 0 || r.data.inflow > 0 || r.data.outflow > 0)
+        .filter((r) => r.data.totalBugsDelta !== 0 || r.data.inflow > 0 || r.data.outflow > 0)
         .sort((a, b) => {
-          const specialOrder = { 'Unversioned': 2, 'Pre-2.16': 1 };
+          const specialOrder = { Unversioned: 2, 'Pre-2.16': 1 };
           const aSpecial = specialOrder[a.name] || 0;
           const bSpecial = specialOrder[b.name] || 0;
           if (aSpecial !== bSpecial) return aSpecial - bSpecial;
           return b.name.localeCompare(a.name, undefined, { numeric: true });
         });
-    }
+    },
   },
   mounted() {
     if (this.snapshotList.length >= 2) {
@@ -179,7 +228,7 @@ export default {
       try {
         const [fromSnapshot, toSnapshot] = await Promise.all([
           this.fetchSnapshot(this.fromId),
-          this.fetchSnapshot(this.toId)
+          this.fetchSnapshot(this.toId),
         ]);
         this.comparison = compareSnapshots(fromSnapshot, toSnapshot);
       } catch (error) {
@@ -211,13 +260,13 @@ export default {
     },
     categoryLabel(cat) {
       const labels = {
-        'regression': 'Regression',
-        'usability': 'Usability',
+        regression: 'Regression',
+        usability: 'Usability',
         'general-engineering': 'Engineering',
-        'uncategorized': 'Uncategorized'
+        uncategorized: 'Uncategorized',
       };
       return labels[cat] || cat;
-    }
-  }
+    },
+  },
 };
 </script>

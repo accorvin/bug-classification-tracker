@@ -45,11 +45,11 @@ app.get('/api/bugs', async function (req, res) {
 
   let bugs = data.bugs || [];
 
-  if (classification) bugs = bugs.filter(b => b.classification === classification);
-  if (priority) bugs = bugs.filter(b => b.priority === priority);
-  if (team) bugs = bugs.filter(b => b.team === team);
-  if (dateFrom) bugs = bugs.filter(b => new Date(b.created) >= new Date(dateFrom));
-  if (dateTo) bugs = bugs.filter(b => new Date(b.created) <= new Date(dateTo));
+  if (classification) bugs = bugs.filter((b) => b.classification === classification);
+  if (priority) bugs = bugs.filter((b) => b.priority === priority);
+  if (team) bugs = bugs.filter((b) => b.team === team);
+  if (dateFrom) bugs = bugs.filter((b) => new Date(b.created) >= new Date(dateFrom));
+  if (dateTo) bugs = bugs.filter((b) => new Date(b.created) <= new Date(dateTo));
 
   res.json({ bugs, lastUpdated: data.lastUpdated });
 });
@@ -62,7 +62,7 @@ app.get('/api/bugs/:key', async function (req, res) {
     return res.status(500).json({ error: `No data found for project ${projectKey}.` });
   }
 
-  const bug = (data.bugs || []).find(b => b.key === req.params.key);
+  const bug = (data.bugs || []).find((b) => b.key === req.params.key);
   if (!bug) {
     return res.status(404).json({ error: `Bug ${req.params.key} not found` });
   }
@@ -108,7 +108,9 @@ app.get('/api/snapshots/:id', async function (req, res) {
 });
 
 app.get('/api/refresh', function (req, res) {
-  res.status(403).json({ error: 'Refresh disabled — use the local refresh script (npm run refresh)' });
+  res
+    .status(403)
+    .json({ error: 'Refresh disabled — use the local refresh script (npm run refresh)' });
 });
 
 // ---------------------------------------------------------------------------

@@ -12,12 +12,12 @@ Add the ability to capture, store, and compare monthly snapshots of bug data gro
 
 Analysis of the current 536-bug dataset reveals inconsistent version field usage:
 
-| Metric | Count | % |
-|--------|-------|---|
-| Has `affectsVersions` only | 187 | 34.9% |
-| Has both fields | 25 | 4.7% |
-| Has `fixVersions` only | 7 | 1.3% |
-| Neither field populated | 317 | 59.1% |
+| Metric                     | Count | %     |
+| -------------------------- | ----- | ----- |
+| Has `affectsVersions` only | 187   | 34.9% |
+| Has both fields            | 25    | 4.7%  |
+| Has `fixVersions` only     | 7     | 1.3%  |
+| Neither field populated    | 317   | 59.1% |
 
 **Key finding:** `affectsVersions` is the primary field used for open bugs (39.6% populated vs. 5.97% for `fixVersions`). Bugs in Review/Testing states are more likely to have `fixVersions` set, confirming the user's hypothesis that `affectsVersions` tracks what's broken and `fixVersions` tracks where the fix lands.
 
@@ -38,6 +38,7 @@ This captures the most bugs possible (40.9% vs. 39.6% with `affectsVersions` alo
 ### Version Rollup Rules
 
 Observed version formats in the data:
+
 - `rhoai-X.Y` — standard (most common)
 - `rhoai-X.Y.Z` — z-stream patches (18 bugs)
 - `rhoai-X.Y.EAn` — early access pre-releases (14 bugs reference EA1, 4 reference EA2)
@@ -45,6 +46,7 @@ Observed version formats in the data:
 - `RHAIIS-X.Y` — alternate product prefix (2 bugs)
 
 **Rollup logic:**
+
 ```
 rhoai-3.3.1     → rhoai-3.3
 rhoai-2.25.next → rhoai-2.25
@@ -60,6 +62,7 @@ Parse pattern: `/^(rhoai-\d+\.\d+)/` extracts the x.y release. Non-`rhoai` prefi
 **Tracked releases (starting from 2.16 forward):** rhoai-2.16, rhoai-2.17, ..., rhoai-2.25, rhoai-3.0, rhoai-3.1, rhoai-3.2, rhoai-3.3, rhoai-3.4, and any future versions.
 
 **Special release groups:**
+
 - **"Pre-2.16":** Bugs with `rhoai-*` versions older than 2.16 are grouped here with full per-bug details, providing historical context without cluttering the main release view.
 - **"Unversioned":** Bugs with no `affectsVersions` or `fixVersions` are grouped here with full per-bug details, ensuring all bugs are represented in the snapshot and CSV exports.
 
@@ -86,18 +89,30 @@ Stored at `{projectKey}/snapshots/{YYYY-MM}.json`:
     "pctWithFixVersion": 6.0
   },
   "global": {
-    "byClassification": { "regression": 97, "usability": 150, "general-engineering": 276, "uncategorized": 13 },
+    "byClassification": {
+      "regression": 97,
+      "usability": 150,
+      "general-engineering": 276,
+      "uncategorized": 13
+    },
     "byPriority": { "Critical": 45, "Major": 200, "Minor": 67, "Normal": 150, "Blocker": 10 },
-    "byStatus": { "New": 340, "Backlog": 108, "In Progress": 32, "Review": 29, "Testing": 26, "Resolved": 1 },
-    "byTeam": { "AI Core Dashboard": 154, "..." : "..." }
+    "byStatus": {
+      "New": 340,
+      "Backlog": 108,
+      "In Progress": 32,
+      "Review": 29,
+      "Testing": 26,
+      "Resolved": 1
+    },
+    "byTeam": { "AI Core Dashboard": 154, "...": "..." }
   },
   "releases": {
     "rhoai-2.16": {
       "totalBugs": 5,
-      "byClassification": { "..." : "..." },
-      "byPriority": { "..." : "..." },
-      "byStatus": { "..." : "..." },
-      "byTeam": { "..." : "..." },
+      "byClassification": { "...": "..." },
+      "byPriority": { "...": "..." },
+      "byStatus": { "...": "..." },
+      "byTeam": { "...": "..." },
       "bugKeys": ["RHOAIENG-12345", "..."],
       "bugs": [
         {
@@ -113,32 +128,32 @@ Stored at `{projectKey}/snapshots/{YYYY-MM}.json`:
         "..."
       ]
     },
-    "rhoai-3.0": { "..." : "..." },
+    "rhoai-3.0": { "...": "..." },
     "rhoai-3.4": {
       "totalBugs": 18,
       "eaBugs": 14,
-      "byClassification": { "..." : "..." },
-      "byPriority": { "..." : "..." },
-      "byStatus": { "..." : "..." },
-      "byTeam": { "..." : "..." },
+      "byClassification": { "...": "..." },
+      "byPriority": { "...": "..." },
+      "byStatus": { "...": "..." },
+      "byTeam": { "...": "..." },
       "bugKeys": ["RHOAIENG-51000", "..."],
       "bugs": ["..."]
     },
     "Pre-2.16": {
       "totalBugs": 3,
-      "byClassification": { "..." : "..." },
-      "byPriority": { "..." : "..." },
-      "byStatus": { "..." : "..." },
-      "byTeam": { "..." : "..." },
+      "byClassification": { "...": "..." },
+      "byPriority": { "...": "..." },
+      "byStatus": { "...": "..." },
+      "byTeam": { "...": "..." },
       "bugKeys": ["RHOAIENG-10050", "..."],
       "bugs": ["..."]
     },
     "Unversioned": {
       "totalBugs": 317,
-      "byClassification": { "..." : "..." },
-      "byPriority": { "..." : "..." },
-      "byStatus": { "..." : "..." },
-      "byTeam": { "..." : "..." },
+      "byClassification": { "...": "..." },
+      "byPriority": { "...": "..." },
+      "byStatus": { "...": "..." },
+      "byTeam": { "...": "..." },
       "bugKeys": ["RHOAIENG-51340", "..."],
       "bugs": ["..."]
     }
@@ -247,6 +262,7 @@ Resolved bugs are stored in the snapshot but flagged with `"isResolved": true` s
 **Goal:** Capture snapshots during refresh and store them alongside existing data.
 
 **Backend changes:**
+
 - `shared/snapshot.js` — New module:
   - `buildSnapshot(classifiedBugs, projectKey, snapshotId)` — builds the snapshot document from classified bugs, including "Pre-2.16" and "Unversioned" release groups
   - `resolveVersions(bug)` — implements the merged version resolution strategy, returns an array of resolved release names. Excludes non-`rhoai` prefixes (e.g., RHAIIS). Returns `["Unversioned"]` if no valid versions found.
@@ -256,10 +272,12 @@ Resolved bugs are stored in the snapshot but flagged with `"isResolved": true` s
 - `server/storage.js` — No changes needed (generic read/write already supports arbitrary keys)
 
 **Storage keys:**
+
 - `{projectKey}/snapshots/{YYYY-MM}.json` — individual monthly snapshot
 - `{projectKey}/snapshots/index.json` — list of available snapshots (see schema below)
 
 **Snapshot index schema** (`snapshots/index.json`):
+
 ```json
 {
   "snapshots": [
@@ -272,9 +290,11 @@ Resolved bugs are stored in the snapshot but flagged with `"isResolved": true` s
 The index is updated during snapshot creation: read existing index, append new entry, write back. The snapshot build step maintains this file. Note: S3 does not provide atomic read-modify-write, but since snapshots run on a fixed monthly schedule, concurrent writes are not a practical concern.
 
 **Files to create:**
+
 - `amplify/backend/function/bugClassifier/src/shared/snapshot.js`
 
 **Files to modify:**
+
 - `scripts/refresh-and-push.js`
 
 **Estimated scope:** ~150 lines of new code
@@ -287,16 +307,17 @@ The index is updated during snapshot creation: read existing index, append new e
 
 **API endpoints (add to dev-server.js and lambda/index.mjs):**
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `GET /api/snapshots` | GET | List available snapshots (read from index.json) |
-| `GET /api/snapshots/:id` | GET | Get a single snapshot (e.g., `2026-03`) |
+| Endpoint                 | Method | Description                                     |
+| ------------------------ | ------ | ----------------------------------------------- |
+| `GET /api/snapshots`     | GET    | List available snapshots (read from index.json) |
+| `GET /api/snapshots/:id` | GET    | Get a single snapshot (e.g., `2026-03`)         |
 
 **Input validation (security):** The `:id` parameter is used to construct a storage key. To prevent path traversal, it **must** be validated against the pattern `/^\d{4}-\d{2}$/` before use. Reject requests with a 400 status if validation fails.
 
 **Note on Lambda compatibility:** Both endpoints are read-only (fetching pre-computed JSON from S3), so no shared snapshot logic is needed in the Lambda. Comparisons are computed client-side (see Phase 3).
 
 **Frontend changes:**
+
 - `src/components/SnapshotView.vue` — New top-level view component (third tab)
   - Snapshot selector (dropdown of available months)
   - Global summary cards (total bugs, versioned %, classification breakdown)
@@ -316,6 +337,7 @@ The index is updated during snapshot creation: read existing index, append new e
 **Goal:** Enable arbitrary month-to-month comparison and trend visualization.
 
 **Client-side comparison logic:**
+
 - `src/utils/snapshot-compare.js` — New utility module:
   - `compareSnapshots(snapshotA, snapshotB)` — computes deltas between any two snapshots
     - Diffs global counts (totalBugs, byClassification, byPriority, byStatus, byTeam)
@@ -326,6 +348,7 @@ The index is updated during snapshot creation: read existing index, append new e
   - Supports arbitrary month pairs (not just consecutive), enabling comparisons like "January vs. March"
 
 **Frontend changes:**
+
 - `src/components/SnapshotCompare.vue` — Comparison sub-view:
   - Two-month selector (from/to dropdowns populated from snapshot index — any combination allowed)
   - Fetches both snapshots via `GET /api/snapshots/:id`, computes comparison client-side
@@ -351,11 +374,13 @@ The index is updated during snapshot creation: read existing index, append new e
 **Goal:** Enable data export for offline sharing.
 
 **Export options:**
+
 - **Snapshot CSV:** One row per bug-release pair, with columns: Key, Summary, Classification, Priority, Status, Team, Affected Release, Created, Updated. A bug affecting multiple releases appears in multiple rows (once per release), making cross-release impact visible and enabling easy filtering by release in Excel. Data is sourced from the per-bug details stored in each release group, so the export reflects the bug state at snapshot time (not the current state).
 - **Comparison CSV:** One row per release, with columns: Release, Metric, Previous Value, Current Value, Delta
 - **Trends CSV:** One row per (month, release) pair, with columns: Month, Release, Total Bugs, Regressions, Usability, General Engineering, Uncategorized, Inflow, Outflow, Net Change
 
 **Implementation:**
+
 - `src/utils/csv-export.js` — CSV generation utility (client-side, no backend needed)
 - Download buttons on Snapshot, Compare, and Trends views
 
@@ -376,6 +401,7 @@ project = RHOAIENG AND type = Bug AND (resolution = Unresolved OR (resolution !=
 ```
 
 Changes to `jira-client.js`:
+
 - Accept an optional `includeResolved` parameter (default: `false` for backward compatibility)
 - When enabled, use the expanded JQL above
 - Add `resolutiondate` to the Jira fields list (currently only `resolution` is fetched — the name, not the timestamp)
@@ -383,6 +409,7 @@ Changes to `jira-client.js`:
 - Add `isResolved` boolean flag for easy filtering
 
 Changes to `shared/snapshot.js`:
+
 - `buildSnapshot` gains a `velocity` section when resolved bugs are present
 - Compute `createdInPeriod`, `resolvedInPeriod`, `netChange`, `avgTimeToResolveDays`, and `timeToResolveBuckets`
 - Resolved bugs are included in release groups but flagged, so the UI can distinguish open vs. resolved
@@ -390,6 +417,7 @@ Changes to `shared/snapshot.js`:
 **Velocity stage transition in `snapshot-compare.js`:** The client-side comparison utility must handle both stages gracefully. When both snapshots have a `velocity` section (Stage 2), use the precise data directly. Otherwise, fall back to estimating inflow/outflow by diffing `bugKeys` arrays (Stage 1). The comparison output structure remains the same regardless of stage, so downstream UI code doesn't need to change.
 
 Changes to `scripts/refresh-and-push.js`:
+
 - Pass `includeResolved: true` when fetching bugs
 - Resolved bugs skip LLM classification (use rule-based only, or inherit prior classification if cached) to control costs
 
@@ -405,6 +433,7 @@ The current refresh script fetches only unresolved bugs. Historical snapshots re
 **Input validation (security):** The `--from` and `--to` CLI arguments are interpolated into JQL queries. To prevent JQL injection, validate that both values strictly match the pattern `/^\d{4}-\d{2}$/` before use. Reject with a clear error message if validation fails.
 
 **Backfill script:**
+
 - `scripts/backfill-snapshots.js` — Runs the refresh + snapshot pipeline for each month from a start date to now
 - Usage: `node scripts/backfill-snapshots.js --from 2025-10 --to 2026-03`
 - Rebuilds `snapshots/index.json` at the end with all generated snapshots
@@ -425,6 +454,7 @@ The current refresh script fetches only unresolved bugs. Historical snapshots re
 **Goal:** Generate polished PDF reports with embedded charts.
 
 **Approach options:**
+
 - **Client-side:** Use `html2canvas` + `jsPDF` to render the snapshot view as a PDF. Pros: no backend changes. Cons: chart rendering can be inconsistent.
 - **Server-side:** Use Puppeteer/Playwright in a Lambda to render the snapshot page headlessly. Pros: consistent output. Cons: adds a heavy dependency, increases Lambda size.
 - **Hybrid (recommended):** Use `chart.js` to render charts to canvas, export as PNG, then compose into PDF with `jsPDF`. Keep it client-side.
@@ -438,26 +468,28 @@ The current refresh script fetches only unresolved bugs. Historical snapshots re
 ## File Changes Summary
 
 ### New Files
-| File | Phase | Purpose |
-|------|-------|---------|
-| `amplify/backend/function/bugClassifier/src/shared/snapshot.js` | 1 | Snapshot building, version resolution, rollup |
-| `amplify/backend/function/bugClassifier/src/shared/__tests__/snapshot.test.js` | 1 | Tests for snapshot logic |
-| `src/components/SnapshotView.vue` | 2 | Main snapshot tab |
-| `src/utils/snapshot-compare.js` | 3 | Client-side comparison logic for arbitrary month pairs |
-| `src/components/SnapshotCompare.vue` | 3 | Comparison view |
-| `src/components/SnapshotTrends.vue` | 3 | Trend charts |
-| `src/utils/csv-export.js` | 4 | CSV generation |
-| `scripts/backfill-snapshots.js` | 5 | Historical backfill |
+
+| File                                                                           | Phase | Purpose                                                |
+| ------------------------------------------------------------------------------ | ----- | ------------------------------------------------------ |
+| `amplify/backend/function/bugClassifier/src/shared/snapshot.js`                | 1     | Snapshot building, version resolution, rollup          |
+| `amplify/backend/function/bugClassifier/src/shared/__tests__/snapshot.test.js` | 1     | Tests for snapshot logic                               |
+| `src/components/SnapshotView.vue`                                              | 2     | Main snapshot tab                                      |
+| `src/utils/snapshot-compare.js`                                                | 3     | Client-side comparison logic for arbitrary month pairs |
+| `src/components/SnapshotCompare.vue`                                           | 3     | Comparison view                                        |
+| `src/components/SnapshotTrends.vue`                                            | 3     | Trend charts                                           |
+| `src/utils/csv-export.js`                                                      | 4     | CSV generation                                         |
+| `scripts/backfill-snapshots.js`                                                | 5     | Historical backfill                                    |
 
 ### Modified Files
-| File | Phase | Change |
-|------|-------|--------|
-| `scripts/refresh-and-push.js` | 1 | Add snapshot build step after refresh |
-| `server/dev-server.js` | 2 | Add snapshot read endpoints (2 routes) |
-| `lambda/index.mjs` | 2 | Add snapshot read endpoints (2 routes) |
-| `src/App.vue` | 2 | Add Snapshots tab |
-| `src/services/api.js` | 2 | Add snapshot API functions |
-| `amplify/backend/function/bugClassifier/src/shared/jira-client.js` | 5 | Add resolved bug capture + optional date filtering for backfill |
+
+| File                                                               | Phase | Change                                                          |
+| ------------------------------------------------------------------ | ----- | --------------------------------------------------------------- |
+| `scripts/refresh-and-push.js`                                      | 1     | Add snapshot build step after refresh                           |
+| `server/dev-server.js`                                             | 2     | Add snapshot read endpoints (2 routes)                          |
+| `lambda/index.mjs`                                                 | 2     | Add snapshot read endpoints (2 routes)                          |
+| `src/App.vue`                                                      | 2     | Add Snapshots tab                                               |
+| `src/services/api.js`                                              | 2     | Add snapshot API functions                                      |
+| `amplify/backend/function/bugClassifier/src/shared/jira-client.js` | 5     | Add resolved bug capture + optional date filtering for backfill |
 
 ---
 

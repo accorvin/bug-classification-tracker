@@ -10,7 +10,7 @@ async function getLLMClassifier() {
     try {
       const mod = await import('./llm-classifier.js');
       classifyWithLLM = mod.classifyWithLLM;
-    } catch (err) {
+    } catch {
       // LLM classifier unavailable (missing SDK or credentials)
       classifyWithLLM = null;
     }
@@ -23,7 +23,7 @@ export const CATEGORIES = {
   REGRESSION: 'regression',
   USABILITY: 'usability',
   GENERAL_ENGINEERING: 'general-engineering',
-  UNCATEGORIZED: 'uncategorized'
+  UNCATEGORIZED: 'uncategorized',
 };
 
 /**
@@ -43,7 +43,7 @@ export function classifyWithRules(bug) {
       return {
         classification: CATEGORIES.REGRESSION,
         classificationMethod: 'rule',
-        classificationReason: `Label '${label}' matched rule`
+        classificationReason: `Label '${label}' matched rule`,
       };
     }
   }
@@ -54,19 +54,33 @@ export function classifyWithRules(bug) {
     return {
       classification: CATEGORIES.REGRESSION,
       classificationMethod: 'rule',
-      classificationReason: 'Summary or description contains "regression"'
+      classificationReason: 'Summary or description contains "regression"',
     };
   }
 
   // Check labels for usability (exact match or known prefixes — no substring)
-  const usabilityExactLabels = ['usability', 'ux', 'ui', 'accessibility', 'needs-ux', 'needs-uxd', 'needs_ux', 'ux-debt', 'ux-dev-request'];
+  const usabilityExactLabels = [
+    'usability',
+    'ux',
+    'ui',
+    'accessibility',
+    'needs-ux',
+    'needs-uxd',
+    'needs_ux',
+    'ux-debt',
+    'ux-dev-request',
+  ];
   for (const label of labels) {
     const lowerLabel = label.toLowerCase();
-    if (usabilityExactLabels.includes(lowerLabel) || lowerLabel.startsWith('ux-') || lowerLabel.startsWith('ux_')) {
+    if (
+      usabilityExactLabels.includes(lowerLabel) ||
+      lowerLabel.startsWith('ux-') ||
+      lowerLabel.startsWith('ux_')
+    ) {
       return {
         classification: CATEGORIES.USABILITY,
         classificationMethod: 'rule',
-        classificationReason: `Label '${label}' matched usability rule`
+        classificationReason: `Label '${label}' matched usability rule`,
       };
     }
   }
@@ -78,7 +92,7 @@ export function classifyWithRules(bug) {
     return {
       classification: CATEGORIES.USABILITY,
       classificationMethod: 'rule',
-      classificationReason: `Component '${component}' matched usability rule`
+      classificationReason: `Component '${component}' matched usability rule`,
     };
   }
 
@@ -89,14 +103,14 @@ export function classifyWithRules(bug) {
     /\bux\b/,
     /\bui\s+issue/,
     /\bconfusing\b/,
-    /\baccessibility\b/
+    /\baccessibility\b/,
   ];
   for (const pattern of usabilityPatterns) {
     if (pattern.test(lowerSummary)) {
       return {
         classification: CATEGORIES.USABILITY,
         classificationMethod: 'rule',
-        classificationReason: `Summary matched usability pattern: ${pattern}`
+        classificationReason: `Summary matched usability pattern: ${pattern}`,
       };
     }
   }
@@ -116,7 +130,7 @@ export async function classifyBug(bug) {
   if (ruleResult) {
     return {
       ...ruleResult,
-      classifiedAt: new Date().toISOString()
+      classifiedAt: new Date().toISOString(),
     };
   }
 
@@ -131,7 +145,7 @@ export async function classifyBug(bug) {
       classification: llmResult.classification || CATEGORIES.UNCATEGORIZED,
       classificationMethod: 'llm',
       classificationReason: llmResult.reason || 'Classified by LLM',
-      classifiedAt: new Date().toISOString()
+      classifiedAt: new Date().toISOString(),
     };
   } catch (error) {
     console.error('LLM classification failed:', error);
@@ -140,7 +154,7 @@ export async function classifyBug(bug) {
       classification: CATEGORIES.UNCATEGORIZED,
       classificationMethod: 'rule',
       classificationReason: 'Could not classify with rules or LLM',
-      classifiedAt: new Date().toISOString()
+      classifiedAt: new Date().toISOString(),
     };
   }
 }
@@ -168,26 +182,49 @@ export async function classifyBugsBatch(bugs, concurrency = 20, onProgress = nul
 
   const ruleCount = results.length;
   let llmDone = 0;
-  if (onProgress) onProgress(ruleCount, bugs.length, `${ruleCount} classified by rules, ${llmQueue.length} queued for LLM`);
+  if (onProgress)
+    onProgress(
+      ruleCount,
+      bugs.length,
+      `${ruleCount} classified by rules, ${llmQueue.length} queued for LLM`,
+    );
 
   // Pass 2: classify remaining with LLM in batches
   const llmFn = await getLLMClassifier();
-  
+
   for (let i = 0; i < llmQueue.length; i += concurrency) {
     const batch = llmQueue.slice(i, i + concurrency);
     const batchResults = await Promise.allSettled(
       batch.map(async (bug) => {
         if (!llmFn) {
-          return { ...bug, classification: CATEGORIES.UNCATEGORIZED, classificationMethod: 'rule', classificationReason: 'LLM not available', classifiedAt: new Date().toISOString() };
+          return {
+            ...bug,
+            classification: CATEGORIES.UNCATEGORIZED,
+            classificationMethod: 'rule',
+            classificationReason: 'LLM not available',
+            classifiedAt: new Date().toISOString(),
+          };
         }
         try {
           const llmResult = await llmFn(bug);
-          return { ...bug, classification: llmResult.classification || CATEGORIES.UNCATEGORIZED, classificationMethod: 'llm', classificationReason: llmResult.reason || 'Classified by LLM', classifiedAt: new Date().toISOString() };
+          return {
+            ...bug,
+            classification: llmResult.classification || CATEGORIES.UNCATEGORIZED,
+            classificationMethod: 'llm',
+            classificationReason: llmResult.reason || 'Classified by LLM',
+            classifiedAt: new Date().toISOString(),
+          };
         } catch (err) {
           console.error(`LLM failed for ${bug.key}:`, err.message);
-          return { ...bug, classification: CATEGORIES.UNCATEGORIZED, classificationMethod: 'rule', classificationReason: 'LLM classification failed: ' + err.message, classifiedAt: new Date().toISOString() };
+          return {
+            ...bug,
+            classification: CATEGORIES.UNCATEGORIZED,
+            classificationMethod: 'rule',
+            classificationReason: 'LLM classification failed: ' + err.message,
+            classifiedAt: new Date().toISOString(),
+          };
         }
-      })
+      }),
     );
 
     for (const r of batchResults) {
@@ -195,7 +232,8 @@ export async function classifyBugsBatch(bugs, concurrency = 20, onProgress = nul
     }
 
     llmDone += batch.length;
-    if (onProgress) onProgress(ruleCount + llmDone, bugs.length, `LLM: ${llmDone}/${llmQueue.length}`);
+    if (onProgress)
+      onProgress(ruleCount + llmDone, bugs.length, `LLM: ${llmDone}/${llmQueue.length}`);
   }
 
   return results;
@@ -230,7 +268,7 @@ export function buildSummary(bugs) {
     byClassification: {},
     byPriority: {},
     byTeam: {},
-    byVersion: {}
+    byVersion: {},
   };
 
   // Initialize classification buckets
@@ -238,7 +276,7 @@ export function buildSummary(bugs) {
     summary.byClassification[category] = {
       count: 0,
       bySeverity: {},
-      byTeam: {}
+      byTeam: {},
     };
   }
 

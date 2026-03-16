@@ -43,7 +43,7 @@ export async function fetchBugs(projectKey, jiraToken, options = {}) {
     'resolution',
     'resolutiondate',
     'fixVersions',
-    'versions' // Affects Version
+    'versions', // Affects Version
   ].join(',');
 
   let startAt = 0;
@@ -55,9 +55,9 @@ export async function fetchBugs(projectKey, jiraToken, options = {}) {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${jiraToken}`,
-        'Accept': 'application/json'
-      }
+        Authorization: `Bearer ${jiraToken}`,
+        Accept: 'application/json',
+      },
     });
 
     if (!response.ok) {
@@ -109,9 +109,9 @@ function transformJiraIssue(jiraIssue) {
     resolution,
     resolved: fields.resolutiondate || null,
     isResolved: resolution != null,
-    fixVersions: (fields.fixVersions || []).map(v => v.name),
-    affectsVersions: (fields.versions || []).map(v => v.name),
-    team: extractTeam(fields)
+    fixVersions: (fields.fixVersions || []).map((v) => v.name),
+    affectsVersions: (fields.versions || []).map((v) => v.name),
+    team: extractTeam(fields),
   };
 }
 

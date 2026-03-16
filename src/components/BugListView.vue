@@ -21,25 +21,46 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Key
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Summary
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Priority
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Classification
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Team
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Status
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Created
               </th>
             </tr>
@@ -89,7 +110,9 @@
                 <td colspan="7" class="px-6 py-4">
                   <div class="space-y-4">
                     <!-- Metadata grid -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm bg-white rounded-md p-3 border border-gray-200">
+                    <div
+                      class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm bg-white rounded-md p-3 border border-gray-200"
+                    >
                       <div>
                         <span class="font-medium text-gray-500">Classification Reason</span>
                         <p class="text-gray-900 mt-0.5">{{ bug.classificationReason }}</p>
@@ -119,7 +142,10 @@
                     <!-- Description -->
                     <div>
                       <span class="text-sm font-medium text-gray-700">Description:</span>
-                      <div class="text-sm text-gray-600 mt-1 prose prose-sm max-w-none" v-html="renderDescription(bug.description)"></div>
+                      <div
+                        class="text-sm text-gray-600 mt-1 prose prose-sm max-w-none"
+                        v-html="renderDescription(bug.description)"
+                      ></div>
                     </div>
                   </div>
                 </td>
@@ -146,23 +172,23 @@ export default {
   name: 'BugListView',
   components: {
     ClassificationBadge,
-    FilterBar
+    FilterBar,
   },
   props: {
     bugs: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     isLoading: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   data() {
     return {
       filters: {},
       expandedBugKey: null,
-      searchQuery: ''
+      searchQuery: '',
     };
   },
   computed: {
@@ -171,29 +197,29 @@ export default {
 
       if (this.searchQuery.trim()) {
         const q = this.searchQuery.trim().toLowerCase();
-        bugs = bugs.filter(b =>
-          b.key.toLowerCase().includes(q) ||
-          (b.summary && b.summary.toLowerCase().includes(q))
+        bugs = bugs.filter(
+          (b) =>
+            b.key.toLowerCase().includes(q) || (b.summary && b.summary.toLowerCase().includes(q)),
         );
       }
       if (this.filters.classification) {
-        bugs = bugs.filter(b => b.classification === this.filters.classification);
+        bugs = bugs.filter((b) => b.classification === this.filters.classification);
       }
       if (this.filters.priority) {
-        bugs = bugs.filter(b => b.priority === this.filters.priority);
+        bugs = bugs.filter((b) => b.priority === this.filters.priority);
       }
       if (this.filters.team) {
-        bugs = bugs.filter(b => b.team === this.filters.team);
+        bugs = bugs.filter((b) => b.team === this.filters.team);
       }
 
       return bugs;
     },
     availablePriorities() {
-      return [...new Set(this.bugs.map(b => b.priority))].sort();
+      return [...new Set(this.bugs.map((b) => b.priority))].sort();
     },
     availableTeams() {
-      return [...new Set(this.bugs.map(b => b.team))].sort();
-    }
+      return [...new Set(this.bugs.map((b) => b.team))].sort();
+    },
   },
   methods: {
     handleFilterChange(filters) {
@@ -210,7 +236,7 @@ export default {
       try {
         const truncated = desc.length > 3000 ? desc.substring(0, 3000) + '\n\n...' : desc;
         return J2M.jira_to_html(truncated);
-      } catch (e) {
+      } catch {
         const escaped = desc.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<pre>${escaped.substring(0, 3000)}</pre>`;
       }
@@ -218,7 +244,7 @@ export default {
     formatDate(dateString) {
       if (!dateString) return 'N/A';
       return new Date(dateString).toLocaleDateString();
-    }
-  }
-}
+    },
+  },
+};
 </script>

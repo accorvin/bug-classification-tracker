@@ -8,8 +8,8 @@ describe('ClassificationBadge', () => {
       props: {
         classification: 'regression',
         method: 'rule',
-        reason: 'Label matched'
-      }
+        reason: 'Label matched',
+      },
     });
 
     expect(wrapper.text()).toContain('Regression');
@@ -21,8 +21,8 @@ describe('ClassificationBadge', () => {
       props: {
         classification: 'usability',
         method: 'llm',
-        reason: 'UI/UX issue detected'
-      }
+        reason: 'UI/UX issue detected',
+      },
     });
 
     expect(wrapper.text()).toContain('Usability');
@@ -34,8 +34,8 @@ describe('ClassificationBadge', () => {
       props: {
         classification: 'general-engineering',
         method: 'rule',
-        reason: 'Logic error'
-      }
+        reason: 'Logic error',
+      },
     });
 
     expect(wrapper.text()).toContain('General Engineering');
@@ -46,8 +46,8 @@ describe('ClassificationBadge', () => {
       props: {
         classification: 'regression',
         method: 'rule',
-        reason: 'Test'
-      }
+        reason: 'Test',
+      },
     });
 
     const badge = wrapper.find('span');
@@ -60,8 +60,8 @@ describe('ClassificationBadge', () => {
       props: {
         classification: 'usability',
         method: 'rule',
-        reason: 'Test'
-      }
+        reason: 'Test',
+      },
     });
 
     const badge = wrapper.find('span');

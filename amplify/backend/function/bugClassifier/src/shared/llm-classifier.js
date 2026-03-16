@@ -49,18 +49,16 @@ Respond with ONLY a JSON object in this exact format:
   const body = {
     anthropic_version: 'vertex-2023-10-16',
     max_tokens: 200,
-    messages: [
-      { role: 'user', content: prompt }
-    ]
+    messages: [{ role: 'user', content: prompt }],
   };
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -85,12 +83,14 @@ Respond with ONLY a JSON object in this exact format:
   // Validate classification
   const validCategories = ['regression', 'usability', 'general-engineering', 'uncategorized'];
   if (!validCategories.includes(result.classification)) {
-    console.warn(`Invalid classification from LLM: ${result.classification}, defaulting to uncategorized`);
+    console.warn(
+      `Invalid classification from LLM: ${result.classification}, defaulting to uncategorized`,
+    );
     result.classification = 'uncategorized';
   }
 
   return {
     classification: result.classification,
-    reason: result.reason || 'Classified by LLM'
+    reason: result.reason || 'Classified by LLM',
   };
 }

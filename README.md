@@ -124,19 +124,23 @@ bug-tracker/
 ## API Endpoints
 
 ### `POST /api/refresh`
+
 - Fetch bugs from Jira (project = RHOAIENG)
 - Classify new/updated bugs through the pipeline
 - Save results to local storage
 - Return summary
 
 ### `GET /api/bugs`
+
 - Query params: `classification`, `priority`, `team`, `dateFrom`, `dateTo`
 - Returns filtered list of classified bugs
 
 ### `GET /api/summary`
+
 - Returns aggregate summary data for dashboard
 
 ### `GET /api/bugs/:key`
+
 - Returns single bug with full classification detail
 
 ## Next Steps (Post-MVP)

@@ -33,7 +33,7 @@ export async function readFromStorage(key) {
       const s3Key = S3_PREFIX + key;
       const command = new GetObjectCommand({
         Bucket: S3_BUCKET,
-        Key: s3Key
+        Key: s3Key,
       });
       const response = await s3Client.send(command);
       const raw = await response.Body.transformToString();
@@ -69,7 +69,7 @@ export async function writeToStorage(key, data) {
       Bucket: S3_BUCKET,
       Key: s3Key,
       Body: JSON.stringify(data, null, 2),
-      ContentType: 'application/json'
+      ContentType: 'application/json',
     });
     await s3Client.send(command);
   } else {

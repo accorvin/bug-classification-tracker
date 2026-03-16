@@ -1,25 +1,23 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
-  plugins: [
-    vue()
-  ],
+  plugins: [vue()],
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
-          'chart-vendor': ['chart.js', 'vue-chartjs']
-        }
-      }
-    }
+          'chart-vendor': ['chart.js', 'vue-chartjs'],
+        },
+      },
+    },
   },
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
-        changeOrigin: true
-      }
-    }
-  }
-})
+        changeOrigin: true,
+      },
+    },
+  },
+});

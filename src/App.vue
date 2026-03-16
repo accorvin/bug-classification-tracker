@@ -12,7 +12,10 @@
               Last Updated: {{ formatDate(lastUpdated) }}
             </div>
             <!-- Data refreshed externally indicator (when refresh is disabled) -->
-            <div v-if="!refreshEnabled" class="text-sm text-primary-100 bg-primary-600 px-3 py-1 rounded-md">
+            <div
+              v-if="!refreshEnabled"
+              class="text-sm text-primary-100 bg-primary-600 px-3 py-1 rounded-md"
+            >
               Data refreshed externally
             </div>
             <!-- Split refresh button (when refresh is enabled) -->
@@ -29,8 +32,19 @@
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <svg
                   v-else
@@ -40,7 +54,12 @@
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
               </button>
@@ -49,8 +68,19 @@
                 :disabled="isRefreshing"
                 class="px-1.5 py-1 text-sm bg-white text-primary-700 rounded-r-md font-medium hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-primary-200"
               >
-                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  class="h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
               <!-- Dropdown -->
@@ -59,7 +89,10 @@
                 class="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-20"
               >
                 <button
-                  @click="refreshData(true); showRefreshMenu = false"
+                  @click="
+                    refreshData(true);
+                    showRefreshMenu = false;
+                  "
                   class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   <div class="font-medium">Hard Refresh</div>
@@ -102,8 +135,19 @@
                   @click="handleSignOut"
                   class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <svg
+                    class="h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
                   </svg>
                   Sign Out
                 </button>
@@ -123,7 +167,7 @@
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
                 currentView === 'dashboard'
                   ? 'border-primary-700 text-primary-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               ]"
             >
               Dashboard
@@ -134,7 +178,7 @@
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
                 currentView === 'bug-list'
                   ? 'border-primary-700 text-primary-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               ]"
             >
               Bug List
@@ -145,7 +189,7 @@
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
                 currentView === 'snapshots'
                   ? 'border-primary-700 text-primary-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               ]"
             >
               Snapshots
@@ -178,14 +222,8 @@
           :bugs="bugs"
           :isLoading="isLoading"
         />
-        <BugListView
-          v-else-if="currentView === 'bug-list'"
-          :bugs="bugs"
-          :isLoading="isLoading"
-        />
-        <SnapshotView
-          v-else-if="currentView === 'snapshots'"
-        />
+        <BugListView v-else-if="currentView === 'bug-list'" :bugs="bugs" :isLoading="isLoading" />
+        <SnapshotView v-else-if="currentView === 'snapshots'" />
       </main>
 
       <!-- Toasts -->
@@ -206,7 +244,6 @@ import AuthGuard from './components/AuthGuard.vue';
 import DashboardView from './components/DashboardView.vue';
 import BugListView from './components/BugListView.vue';
 import SnapshotView from './components/SnapshotView.vue';
-import LoadingOverlay from './components/LoadingOverlay.vue';
 import Toast from './components/Toast.vue';
 import { useAuth } from './composables/useAuth';
 import { refreshBugs, getBugs, getSummary, getConfig } from './services/api';
@@ -218,14 +255,13 @@ export default {
     DashboardView,
     BugListView,
     SnapshotView,
-    LoadingOverlay,
-    Toast
+    Toast,
   },
   setup() {
     const { user: authUser, signOut } = useAuth();
     return {
       authUser,
-      signOut
+      signOut,
     };
   },
   data() {
@@ -243,7 +279,7 @@ export default {
       refreshProgressPercent: 0,
       refreshProgressMessage: 'Starting refresh...',
       showRefreshMenu: false,
-      refreshEnabled: true
+      refreshEnabled: true,
     };
   },
   watch: {
@@ -259,7 +295,7 @@ export default {
       if (this.authUser && !this.isLoading && !this.isRefreshing) {
         this.loadData();
       }
-    }
+    },
   },
   async mounted() {
     document.addEventListener('click', this.handleClickOutside);
@@ -291,7 +327,7 @@ export default {
       try {
         const [bugsData, summaryData] = await Promise.all([
           getBugs({ project: this.projectKey }),
-          getSummary(this.projectKey)
+          getSummary(this.projectKey),
         ]);
 
         this.bugs = bugsData.bugs || [];
@@ -335,11 +371,15 @@ export default {
               this.refreshProgressPercent = Math.round(5 + (classified / total) * 95);
               this.refreshProgressMessage = data.message || `Classifying: ${classified}/${total}`;
             }
-          }
+          },
         });
 
         this.refreshProgressPercent = 100;
-        this.showToast(`Successfully refreshed ${result.totalBugs} bugs! Classified ${result.classified}, skipped ${result.skipped}.`, 'success', 5000);
+        this.showToast(
+          `Successfully refreshed ${result.totalBugs} bugs! Classified ${result.classified}, skipped ${result.skipped}.`,
+          'success',
+          5000,
+        );
 
         // Reload data
         await this.loadData();
@@ -381,7 +421,7 @@ export default {
     },
 
     removeToast(id) {
-      this.toasts = this.toasts.filter(t => t.id !== id);
+      this.toasts = this.toasts.filter((t) => t.id !== id);
     },
 
     getUserInitials(user) {
@@ -400,7 +440,7 @@ export default {
       }
 
       return '??';
-    }
-  }
-}
+    },
+  },
+};
 </script>
