@@ -1,6 +1,8 @@
-# Bug Classification Tracker MVP
+# Bug Classification Tracker (Decommissioned)
 
-Internal Red Hat web app for tracking and classifying bugs across AI Engineering orgs. Pulls bug data from Jira (read-only), classifies bugs into categories using a tiered approach (rules first, LLM fallback), caches results, and presents a dashboard.
+> **This project is no longer active.** All AWS infrastructure (Lambda, API Gateway, IAM roles, S3 bucket) has been torn down. The code is preserved here for reference only.
+
+Internal Red Hat web app for tracking and classifying bugs across AI Engineering orgs. Pulled bug data from Jira (read-only), classified bugs into categories using a tiered approach (rules first, LLM fallback), cached results, and presented a dashboard.
 
 ## Tech Stack
 
@@ -143,11 +145,3 @@ bug-tracker/
 
 - Returns single bug with full classification detail
 
-## Next Steps (Post-MVP)
-
-- [ ] Deploy to AWS Lambda + API Gateway
-- [ ] Replace local JSON storage with S3
-- [ ] Add more Jira projects beyond RHOAIENG
-- [ ] Enhance LLM prompts for better classification accuracy
-- [ ] Add time-series trend charts
-- [ ] Export functionality (CSV, PDF)
